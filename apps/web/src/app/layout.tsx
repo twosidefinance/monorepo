@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "@/src/styles/globals.css";
 import { Toaster } from "@buffcat/ui/components/sonner";
 import { CustomLayout } from "@/src/components/CustomLayout";
 
