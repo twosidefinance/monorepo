@@ -14,3 +14,23 @@ export type TokenMetadata = {
   logo: string;
   address: string;
 };
+
+export type Language =
+  | "english"
+  | "chinese"
+  | "hindi"
+  | "spanish"
+  | "vietnamese"
+  | "portuguese"
+  | "korean"
+  | "japanese"
+  | "russian"
+  | "french";
+
+export type TextContent = {
+  name: string;
+};
+
+export type Translations = {
+  [key in Language]: TextContent;
+};

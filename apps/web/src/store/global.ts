@@ -1,4 +1,4 @@
-import { TokenMetadata } from "../types/global";
+import { Language, TokenMetadata } from "../types/global";
 import { TokenSelectorAtom, SelectedTokensAtom, Tab } from "../types/state";
 import { atom } from "jotai";
 
@@ -13,4 +13,6 @@ export const selectedTokensAtom = atom<SelectedTokensAtom>({
   unlockToken: null,
 });
 
-export const currentTab = atom<Tab>("lock");
+export const currentTabAtom = atom<Tab>("lock");
+
+export const selectedLanguageAtom = atom<Language>("english");
