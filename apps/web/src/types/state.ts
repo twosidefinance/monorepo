@@ -1,4 +1,4 @@
-import { TokenMetadata } from "@/src/types/global";
+import { TokenMetadata } from "@/types/global";
 
 export type TokenSelectorAtom = {
   isOpen: boolean;

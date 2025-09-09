@@ -7,8 +7,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { SolanaProvider } from "@/src/features/wallet/config/solanaConfig";
-import { wagmiConfig } from "@/src/features/wallet/config/wagmiConfig";
+import { SolanaProvider } from "@/features/wallet/config/solanaConfig";
+import { wagmiConfig } from "@/features/wallet/config/wagmiConfig";
 import { toast } from "sonner";
 
 export function CustomLayout({ children }: { children: ReactNode }) {

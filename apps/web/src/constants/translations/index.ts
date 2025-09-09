@@ -1,4 +1,4 @@
-import { Translations } from "@/src/types/global";
+import { Translations } from "@/types/global";
 import { translation as chineseTranslation } from "./languages/chinese";
 import { translation as englishTranslation } from "./languages/english";
 import { translation as frenchTranslation } from "./languages/french";

@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "@/src/styles/globals.css";
-import { Toaster } from "@buffcat/ui/components/sonner";
-import { CustomLayout } from "@/src/components/CustomLayout";
+import { Inter } from "next/font/google";
+import "@/styles/globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import { CustomLayout } from "@/components/CustomLayout";
 import { buffcatWebsiteMetadata, jsonLd } from "./metadata";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const font = Inter({
+  variable: "--font-custom-font",
   subsets: ["latin"],
 });
 
@@ -25,17 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${font.variable} antialiased bg-custom-root-bg text-custom-root-text font-semibold`}
       >
         <CustomLayout>
           {children}
           <Toaster />
         </CustomLayout>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </body>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </html>
   );
 }
