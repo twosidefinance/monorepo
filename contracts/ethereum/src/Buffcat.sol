@@ -34,9 +34,15 @@ contract Buffcat is
 
     mapping(address => bool) public whitelistedTokens;
     mapping(address => address) tokenDerivatives;
-
     
     // Events :-
+    event DeveloperFeesDistributed(address developerWallet, address token, uint256 fees, uint256 timestamp);
+    event FounderFeesDistributed(address founderWallet, address token, uint256 fees, uint256 timestamp);
+    event TokenWhitelisted(address token, uint256 timestamp);
+    event TokenBlacklisted(address token, uint256 timestamp);
+    event AssetsLocked(address account, address token, uint256 amount, uint256 timestamp);
+    event AssetsUnlocked(address account, address token, uint256 amount, uint256 timestamp);
+    event DerivativeContractDeployed(address token, address derivative, uint256 timestamp);
 
     // Errors :-
 
