@@ -73,4 +73,22 @@ contract BuffcatUpgradeable is
     ) internal override onlyOwner {
         // Additional validation logic could go here if needed
     }
+
+    function calculateFee(uint256 _amount) internal view returns (uint256) {
+        return (_amount * feePercentage) / feePercentageDivider;
+    }
+
+    function distributeFee(
+        address _token,
+        uint256 _fee
+    ) internal {
+        uint256 half = _fee / 2;
+
+        IERC20(_token).safeTransfer(founder, half);
+        IERC20(_token).safeTransfer(developer, half);
+
+        emit DeveloperFeesDistributed(developer, _token, half, block.timestamp);
+        emit FounderFeesDistributed(founder, _token, half, block.timestamp);
+    }
+
 }
