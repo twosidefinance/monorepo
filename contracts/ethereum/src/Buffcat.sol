@@ -37,6 +37,13 @@ contract BuffcatUpgradeable is
     mapping(address => bool) public whitelistedTokens;
     mapping(address => address) tokenDerivatives;
 
+    // Modifiers :-
+    modifier onlyAuthorizedUpdater() {
+        if (!authorizedUpdaters[msg.sender])
+            revert NotAuthorized();
+        _;
+    }
+
     // Functions :-
     // 1. Inherited Functions :-
     // 2. Public Functions :-
