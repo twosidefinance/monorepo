@@ -27,15 +27,16 @@ contract BuffcatUpgradeable is
     // Variables :-
     address public derivativeImplementation;
 
-    address public developerWallet;
-    address public founderWallet;
+    address public developer;
+    address public founder;
     mapping(address => bool) public authorizedUpdaters;
 
     uint256 public feePercentage;
-    FeeDistribution public feeSplit;
+    uint256 public feePercentageDivider;
 
     mapping(address => bool) public whitelistedTokens;
     mapping(address => address) tokenDerivatives;
+    mapping(address => uint256) lockedTokensCount;
 
     // Modifiers :-
     modifier onlyAuthorizedUpdater() {
@@ -45,8 +46,26 @@ contract BuffcatUpgradeable is
     }
 
     // Functions :-
-    // 1. Inherited Functions :-
-    // 2. Public Functions :-
-    // 3. Private Functions :-
-    // 4. Admin Functions :-
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address _developer,
+        address _founder,
+        address _derivativeImplementation
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
+        __Pausable_init();
+
+        developer = _developer;
+        founder = _founder;
+        derivativeImplementation = _derivativeImplementation;
+        MIN_LOCK_VALUE = 400;
+        feePercentage = 5;
+        feePercentageDivider = 1000;
+    }
+
 }

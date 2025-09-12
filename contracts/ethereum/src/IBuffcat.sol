@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-// Initializable,
-//     OwnableUpgradeable,
-//     UUPSUpgradeable,
-//     PausableUpgradeable,
-//     ReentrancyGuardUpgradeable
-
 interface IBuffcat {
     // Events :-
     event DeveloperFeesDistributed(address developerWallet, address token, uint256 fees, uint256 timestamp);
@@ -28,6 +22,6 @@ interface IBuffcat {
     error InvalidAddress();
 
     // Functions :-
-    function lock(address token, uint256 amount) external;
-    function unlock(address token, uint256 amount) external;
+    function lock(address _token, uint256 _amount) external;
+    function unlock(address _token, uint256 _amount) external;
 }
