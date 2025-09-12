@@ -91,4 +91,25 @@ contract BuffcatUpgradeable is
         emit FounderFeesDistributed(founder, _token, half, block.timestamp);
     }
 
+    function whitelist(
+        address[] calldata _tokens
+    ) external onlyAuthorized {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            whitelistedTokens[token] = true;
+            emit TokenWhitelisted(token, block.timestamp);
+        }
+    }
+
+    function blacklist(
+        address[] calldata _tokens
+    ) external onlyAuthorized {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            whitelistedTokens[token] = false;
+            emit TokenBlacklisted(token, block.timestamp);
+        }
+    }
 }
