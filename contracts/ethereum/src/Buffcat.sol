@@ -77,12 +77,13 @@ contract BuffcatUpgradeable is
         if (_amount == 0) revert ZeroAmountValue();
         if (_amount < MIN_LOCK_VALUE) revert InvalidAmount();
         if (!whitelistedTokens[_token]) revert NotWhitelisted();
+
         uint256 allowance = IERC20(_token).allowance(msg.sender, address(this));
         if (allowance < _amount) revert InsufficientAllowance();
         if (IERC20(_token).balanceOf(msg.sender) < _amount) revert InsufficientBalance();
 
-        address derivateAddress = tokenDerivatives[_token];
-        if (derivateAddress == address(0)) {
+        address derivativeAddress = tokenDerivatives[_token];
+        if (derivativeAddress == address(0)) {
             IERC20Metadata t = IERC20Metadata(_token);
             string memory name = t.name();
             string memory symbol = t.symbol();
@@ -91,9 +92,9 @@ contract BuffcatUpgradeable is
             string memory derivativeName = string(abi.encodePacked("Liquid ", name));
             string memory derivativeSymbol = string(abi.encodePacked("li", symbol));
 
-            derivateAddress = Clones.clone(derivativeImplementation);
-            IDerivativeToken(derivateAddress).initialize(address(this), derivativeName, derivativeSymbol, decimals);
-            emit DerivativeContractDeployed(_token, derivateAddress, block.timestamp);
+            derivativeAddress = Clones.clone(derivativeImplementation);
+            IDerivativeToken(derivativeAddress).initialize(address(this), derivativeName, derivativeSymbol, decimals);
+            emit DerivativeContractDeployed(_token, derivativeAddress, block.timestamp);
         }
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -104,10 +105,35 @@ contract BuffcatUpgradeable is
         distributeFee(_token, fee);
 
         IDerivativeToken(_token).mint(msg.sender, deductedAmount);
-        emit AssetsLocked(msg.sender, _token, deductedAmount, block.timestamp);
+        emit AssetsLocked(msg.sender, _token, _amount, block.timestamp);
     }
 
-    function unlock(address _token, uint256 _amount) external nonReentrant whenNotPaused {}
+    function unlock(address _token, address _derivative, uint256 _amount) external nonReentrant whenNotPaused {
+        if (_token == address(0)) revert ZeroAddress();
+        if (_derivative == address(0)) revert ZeroAddress();
+        if (_amount == 0) revert ZeroAmountValue();
+        if (_amount < MIN_LOCK_VALUE) revert InvalidAmount();
+        if (!whitelistedTokens[_token]) revert NotWhitelisted();
+
+        address derivativeAddress = tokenDerivatives[_token];
+        if (derivativeAddress == address(0)) revert NoDerivativeDeployed();
+        if (derivativeAddress != _derivative) revert InvalidDerivativeAddress();
+
+        uint256 allowance = IERC20(_derivative).allowance(msg.sender, address(this));
+        if (allowance < _amount) revert InsufficientAllowance();
+        if (IERC20(_derivative).balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+
+        IERC20(_derivative).safeTransferFrom(msg.sender, address(this), _amount);
+        
+        uint256 fee = calculateFee(_amount);
+        uint256 deductedAmount = _amount - fee;
+
+        distributeFee(_token, fee);
+
+        IDerivativeToken(_derivative).burn(_amount);
+        IERC20(_token).transfer(msg.sender, deductedAmount);
+        emit AssetsUnlocked(msg.sender, _token, _amount, block.timestamp);
+    }
 
     // Internal -
     function _authorizeUpgrade(
