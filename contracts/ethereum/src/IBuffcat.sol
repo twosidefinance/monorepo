@@ -13,13 +13,12 @@ interface IBuffcat {
 
     // Errors :-
     error NotAuthorized();
-    error InvalidLockAmount();
-    error InvalidERC20Token();
+    error ZeroAmountValue();
+    error ZeroAddress();
+    error InvalidAmount();
+    error NotWhitelisted();
     error InsufficientAllowance();
     error InsufficientBalance();
-    error InvalidUnlockAmount();
-    error InvalidToken();
-    error InvalidAddress();
 
     // Functions :-
     function lock(address _token, uint256 _amount) external;

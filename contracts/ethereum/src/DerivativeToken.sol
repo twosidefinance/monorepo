@@ -8,7 +8,7 @@ import {Initializable} from "@openzeppelin-contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract MyToken is 
+contract DerivativeToken is 
     Initializable, 
     ERC20Upgradeable, 
     ERC20BurnableUpgradeable, 
@@ -21,11 +21,16 @@ contract MyToken is
         _disableInitializers();
     }
 
-    function initialize(address initialOwner, string calldata name, string calldata symbol, uint8 decimals) public initializer {
-        __ERC20_init(name, symbol);
+    function initialize(
+        address _initialOwner, 
+        string calldata _name, 
+        string calldata _symbol, 
+        uint8 _decimals
+    ) public initializer {
+        __ERC20_init(_name, _symbol);
         __ERC20Burnable_init();
-        __Ownable_init(initialOwner);
-        customDecimals = decimals;
+        __Ownable_init(_initialOwner);
+        customDecimals = _decimals;
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
