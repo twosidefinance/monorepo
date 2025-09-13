@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IBuffcat} from "./IBuffcat.sol";
+import {IBuffcat} from "./interfaces/IBuffcat.sol";
 import {IERC20} from "@openzeppelin-contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -11,7 +11,8 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin-contracts-upgradeable/ut
 import {PausableUpgradeable} from "@openzeppelin-contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Initializable} from "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Clones} from "@openzeppelin-contracts/proxy/Clones.sol";
-import {IDerivativeToken} from "./IDerivativeToken.sol";
+import {IDerivativeToken} from "./interfaces/IDerivativeToken.sol";
+import {DerivativeToken} from "./token/DerivativeToken.sol";
 
 contract BuffcatUpgradeable is
     IBuffcat,
