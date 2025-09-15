@@ -36,8 +36,8 @@ contract BuffcatUpgradeable is
     uint256 public feePercentageDivider;
 
     mapping(address => bool) public whitelistedTokens;
-    mapping(address => address) tokenDerivatives;
-    mapping(address => uint256) lockedTokensCount;
+    mapping(address => address) public tokenDerivatives;
+    mapping(address => uint256) public lockedTokensCount;
 
     // Modifiers :-
     modifier onlyAuthorizedUpdater() {
@@ -94,6 +94,7 @@ contract BuffcatUpgradeable is
             derivativeAddress = Clones.clone(derivativeImplementation);
             IToken(derivativeAddress).initialize(address(this), derivativeName, derivativeSymbol, decimals);
             emit DerivativeContractDeployed(_token, derivativeAddress, block.timestamp);
+            tokenDerivatives[_token] = derivativeAddress;
         }
 
         IToken(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -103,7 +104,7 @@ contract BuffcatUpgradeable is
 
         distributeFee(_token, fee);
 
-        IToken(_token).mint(msg.sender, deductedAmount);
+        IToken(derivativeAddress).mint(msg.sender, deductedAmount);
         emit AssetsLocked(msg.sender, _token, _amount, block.timestamp);
     }
 
@@ -159,6 +160,14 @@ contract BuffcatUpgradeable is
     }
 
     // Private -
+    function addAuthorizeUpdaters(address[] calldata _accounts) external onlyOwner {
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            address account = _accounts[i];
+            if (account == address(0)) revert ZeroAddress();
+            authorizedUpdaters[account] = true;
+        }
+    }
+
     function whitelist(
         address[] calldata _tokens
     ) external onlyAuthorizedUpdater {
