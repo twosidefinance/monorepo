@@ -48,4 +48,8 @@ contract TestSetUp is Test {
 
         vm.stopPrank();
     }
+
+    function calculateFee(uint256 _amount) public pure returns (uint256) {
+        return (_amount * 5) / 1000;
+    }
 }

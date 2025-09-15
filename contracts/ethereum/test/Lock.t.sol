@@ -15,7 +15,7 @@ contract LockTests is TestSetUp {
         token1.approve(address(buffcat), initialBalance);
 
         uint256 lockAmount = 10e18;
-        uint256 fees = (lockAmount * 5) / 1000;
+        uint256 fees = calculateFee(lockAmount);
         uint256 lockedAmount = lockAmount - fees;
         buffcat.lock(address(token1), lockAmount);
 
@@ -89,7 +89,7 @@ contract LockTests is TestSetUp {
         token1.approve(address(buffcat), initialBalance);
 
         uint256 lockAmount = 10e18;
-        uint256 fees = (lockAmount * 5) / 1000;
+        uint256 fees = calculateFee(lockAmount);
         uint256 lockedAmount = lockAmount - fees;
         buffcat.lock(address(token1), lockAmount);
 
