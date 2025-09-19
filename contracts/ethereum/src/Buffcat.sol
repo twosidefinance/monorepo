@@ -30,6 +30,8 @@ contract BuffcatUpgradeable is
 
     address public developer;
     address public founder;
+    uint256 public developerShare;
+    uint256 public founderShare;
     mapping(address => bool) public authorizedUpdaters;
 
     uint256 public feePercentage;
@@ -37,7 +39,6 @@ contract BuffcatUpgradeable is
 
     mapping(address => bool) public whitelistedTokens;
     mapping(address => address) public tokenDerivatives;
-    mapping(address => uint256) public lockedTokensCount;
 
     // Modifiers :-
     modifier onlyAuthorizedUpdater() {
@@ -64,6 +65,8 @@ contract BuffcatUpgradeable is
 
         developer = _developer;
         founder = _founder;
+        developerShare = 50;
+        founderShare = 50;
         derivativeImplementation = address(new DerivativeToken());
         MIN_LOCK_VALUE = 400;
         feePercentage = 5;
@@ -146,13 +149,14 @@ contract BuffcatUpgradeable is
         address _token,
         uint256 _fee
     ) internal {
-        uint256 half = _fee / 2;
+        uint256 developerFeeShare = (_fee * developerShare) / 100;
+        uint256 founderFeeShare = (_fee * founderShare) / 100;
 
-        IToken(_token).safeTransfer(founder, half);
-        IToken(_token).safeTransfer(developer, half);
+        IToken(_token).safeTransfer(developer, developerFeeShare);
+        IToken(_token).safeTransfer(founder, founderFeeShare);
 
-        emit DeveloperFeesDistributed(developer, _token, half, block.timestamp);
-        emit FounderFeesDistributed(founder, _token, half, block.timestamp);
+        emit DeveloperFeesDistributed(developer, _token, developerFeeShare, block.timestamp);
+        emit FounderFeesDistributed(founder, _token, founderFeeShare, block.timestamp);
     }
 
     function calculateFee(uint256 _amount) internal view returns (uint256) {
