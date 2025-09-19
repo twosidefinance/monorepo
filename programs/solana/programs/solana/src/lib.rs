@@ -73,7 +73,7 @@ pub struct AssetsUnlocked {
     pub timestamp: i64,
 }
 
-[#event]
+#[event]
 pub struct DerivativeTokenMinted {
     pub token: Pubkey,
     pub derivative: Pubkey,
