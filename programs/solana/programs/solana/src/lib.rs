@@ -29,6 +29,14 @@ pub mod Buffcat {
         global_info.min_lock_value = 400;
         Ok(())
     }
+
+    pub fn calculate_fee(
+        amount: u64,
+        fee_percentage: u64,
+        fee_percentage_divider: u64
+    ) -> u64 {
+        return (amount * fee_percentage) / fee_percentage_divider;
+    }
 }
 
 #[derive(Accounts)]
