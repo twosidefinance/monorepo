@@ -50,5 +50,5 @@ interface IBuffcat {
 
     // Functions :-
     function lock(address _token, uint256 _amount) external;
-    function unlock(address _token, address _derivative, uint256 _amount) external;
+    function unlock(address _token, uint256 _amount) external;
 }

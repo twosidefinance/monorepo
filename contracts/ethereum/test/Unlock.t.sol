@@ -29,7 +29,7 @@ contract UnlockTests is TestSetUp {
         fees = calculateFee(lockedAmount);
         uint256 unlockAmount = lockedAmount - fees;
         IERC20(derivative).approve(address(buffcat), lockedAmount);
-        buffcat.unlock(address(token1), derivative, lockedAmount);
+        buffcat.unlock(address(token1), lockedAmount);
 
         balance = token1.balanceOf(user);
         assertEq(balance, (initialBalance - lockAmount) + unlockAmount, "Wrong Balance 3");
@@ -61,14 +61,10 @@ contract UnlockTests is TestSetUp {
         IERC20(derivative).approve(address(buffcat), lockedAmount);
 
         vm.expectRevert(IBuffcat.ZeroAddress.selector);
-        buffcat.unlock(address(0), derivative, lockedAmount);
-        vm.expectRevert(IBuffcat.ZeroAddress.selector);
-        buffcat.unlock(address(token1), address(0), lockedAmount);
+        buffcat.unlock(address(0), lockedAmount);
 
         vm.expectRevert(IBuffcat.NoDerivativeDeployed.selector);
-        buffcat.unlock(address(token2), derivative, lockedAmount);
-        vm.expectRevert(IBuffcat.InvalidDerivativeAddress.selector);
-        buffcat.unlock(address(token1), address(token2), lockedAmount);
+        buffcat.unlock(address(token2), lockedAmount);
 
         vm.stopPrank();
     }
@@ -92,7 +88,7 @@ contract UnlockTests is TestSetUp {
 
         IERC20(derivative).approve(address(buffcat), lockedAmount);
         vm.expectRevert(IBuffcat.ZeroAmountValue.selector);
-        buffcat.unlock(address(token1), derivative, uint256(0));
+        buffcat.unlock(address(token1), uint256(0));
 
         vm.stopPrank();
     }
@@ -107,7 +103,7 @@ contract UnlockTests is TestSetUp {
         uint256 unlockAmount = 1e18;
 
         vm.expectRevert(IBuffcat.NotWhitelisted.selector);
-        buffcat.unlock(address(token3), address(token1), unlockAmount);
+        buffcat.unlock(address(token3), unlockAmount);
 
         vm.stopPrank();
     }
@@ -129,7 +125,7 @@ contract UnlockTests is TestSetUp {
         ts = block.timestamp;
         vm.expectEmit(true, true, true, true);
         emit IBuffcat.AssetsUnlocked(user, address(token1), unlockAmount, ts);
-        buffcat.unlock(address(token1), derivative, unlockAmount);
+        buffcat.unlock(address(token1), unlockAmount);
 
         vm.stopPrank();
     }
@@ -171,7 +167,7 @@ contract UnlockTests is TestSetUp {
         assertEq(derivativeDecimals, expectedDerivativeDecimals, "Wrong Derivative Decimals");
 
         IERC20(derivative).approve(address(buffcat), lockedAmount);
-        buffcat.unlock(address(token1), derivative, lockedAmount);
+        buffcat.unlock(address(token1), lockedAmount);
 
         balance = IERC20(derivative).balanceOf(user);
         assertEq(balance, 0, "Wrong Balance 3");

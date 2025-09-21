@@ -36,6 +36,47 @@ pub mod buffcat {
         ctx: Context<Lock>,
         amount: u64
     ) -> Result<()> {
+        let system_program = &ctx.accounts.system_program;
+        let token_program = &ctx.accounts.token_program;
+        let associated_token_program = &ctx.accounts.associated_token_program;
+
+        let token_mint = &ctx.accounts.token_mint;
+        let token_info = &ctx.accounts.token_info;
+        let vault_authority = &ctx.accounts.vault_authority;
+        let vault_token_account = &ctx.accounts.vault_token_account;
+
+        let global_info = &ctx.accounts.global_info;
+        let founder_ata = &ctx.accounts.founder_ata;
+        let developer_ata = &ctx.accounts.developer_ata;
+
+        let signer = &ctx.accounts.signer;
+
+        require!(
+            amount != 0, 
+            BuffcatErrorCodes::ZeroAmountValue
+        );
+        require!(
+            amount >= global_info.min_lock_value as u64, 
+            BuffcatErrorCodes::InvalidAmount
+        );
+        require!(
+            token_info.whitelisted, 
+            BuffcatErrorCodes::NotWhitelisted
+        );
+
+        // check if derivative has been deployed by 
+        // checking derivative_mint field in token_info
+        // if not then
+        // fetch token name, symbol and decimals
+        // modify name to have "Liquid " at start
+        // modify symbol to have "li" at start
+        // deploy new derivative token mint
+        // transfer lock token mint to vault
+        // deduct fee and distribute to founder & developer wallet
+        // mint derivative tokens equal to fee
+        // fee deducted amount to user's derivative ata
+        // emit the event
+
         Ok(())
     }
 
