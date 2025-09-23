@@ -347,7 +347,6 @@ pub struct Lock<'info> {
     )]
     pub signer_derivative_ata: Account<'info, TokenAccount>,
 
-
     // Token Accounts :-
     #[account(
         mut, 
@@ -398,28 +397,42 @@ pub struct Unlock<'info> {
     // System Accounts :-
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 
-    // Lock Token Mint :-
+    // Unlock Token Mint :-
     #[account(
         constraint = token_mint.is_initialized
         @ ProgramError::UninitializedAccount
     )]
     pub token_mint: Account<'info, Mint>,
 
-    // User :-
-    pub signer: Signer<'info>,
     #[account(
         mut,
-        constraint = original_ata.owner == signer.key() && 
-        original_ata.mint == token_mint.key()
+        constraint = derivative_mint.key() == token_info.derivative_mint
+        @ BuffcatErrorCodes::InvalidDerivativeAddress
     )]
-    pub original_ata: Account<'info, TokenAccount>,
-        #[account(
-        mut,
-        constraint = derivative_ata.owner == signer.key() && 
-        derivative_ata.mint == token_info.derivative_mint
+    pub derivative_mint: UncheckedAccount<'info>,
+    #[account(
+        seeds = [
+        DERIVATIVE_AUTHORITY_SEED,
+        token_mint.key()
+        ], bump
     )]
-    pub derivative_ata: Account<'info, TokenAccount>,
+    pub derivative_authority: UncheckedAccount<'info>,
+
+    // User :-
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(
+        constraint = signer_token_ata.owner == signer.key()
+        && signer_token_ata.mint == token_mint.key()
+    )]
+    pub signer_token_ata: Account<'info, TokenAccount>,
+    #[account(
+        constraint = signer_derivative_ata.owner == signer.key()
+        && signer_derivative_ata.mint == derivative_mint.key()
+    )]
+    pub signer_derivative_ata: Account<'info, TokenAccount>,
 
     // Token Accounts :-
     #[account(
@@ -441,13 +454,11 @@ pub struct Unlock<'info> {
     )]
     pub vault_authority: SystemAccount<'info>,
     #[account(
-        mut,
-        constraint = vault_ata.mint == token_mint.key() && 
-        vault_ata.owner == vault_authority.key(),
-        address = get_associated_token_address(
-            &vault_authority.key(), 
-            &token_mint.key()
-        ))]
+        init_if_needed,
+        payer = signer,
+        associated_token::mint = token_mint,
+        associated_token::authority = vault_authority
+    )]
     pub vault_ata: Account<'info, TokenAccount>,
 
     // Contract Accounts :-
