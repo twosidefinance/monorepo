@@ -206,13 +206,10 @@ pub mod buffcat {
         ctx: Context<Unlock>,
         amount: u64
     ) -> Result<()> {
-        let system_program = &ctx.accounts.system_program;
         let token_program = &ctx.accounts.token_program;
-        let associated_token_program = &ctx.accounts.associated_token_program;
 
         let token_mint = &ctx.accounts.token_mint;
         let derivative_mint_acc = &ctx.accounts.derivative_mint;
-        let derivative_authority = &ctx.accounts.derivative_authority;
         let token_info = &ctx.accounts.token_info;
         let vault_authority = &ctx.accounts.vault_authority;
         let vault_ata = &ctx.accounts.vault_ata;
@@ -266,7 +263,7 @@ pub mod buffcat {
 
         let cpi_accounts = Burn {
             from: signer_derivative_ata.to_account_info(),
-            mint: token_mint.to_account_info(),
+            mint: derivative_mint_acc.to_account_info(),
             authority: signer.to_account_info(),
         };
         let cpi_program = token_program.to_account_info();
@@ -498,13 +495,6 @@ pub struct Unlock<'info> {
         @ BuffcatErrorCodes::InvalidDerivativeAddress
     )]
     pub derivative_mint: UncheckedAccount<'info>,
-    #[account(
-        seeds = [
-        DERIVATIVE_AUTHORITY_SEED,
-        token_mint.key().as_ref()
-        ], bump
-    )]
-    pub derivative_authority: UncheckedAccount<'info>,
 
     // User :-
     #[account(mut)]
