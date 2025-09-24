@@ -299,7 +299,7 @@ pub mod buffcat {
     }
 
     pub fn add_authorized_updater(
-        ctx: Context<AddAuthorizedUpdaters>,
+        ctx: Context<AddAuthorizedUpdater>,
         updater: Pubkey
     ) -> Result<()> {
         let signer = &ctx.accounts.signer;
@@ -562,7 +562,7 @@ pub struct Unlock<'info> {
 
 #[derive(Accounts)]
 #[instruction(updater: Pubkey)]
-pub struct AddAuthorizedUpdaters<'info> {
+pub struct AddAuthorizedUpdater<'info> {
     // System Accounts :-
     pub system_program: Program<'info, System>,
 
@@ -631,7 +631,10 @@ pub struct Whitelist<'info> {
     )]
     pub token_info: Account<'info, TokenInfo>,
     #[account(
-        seeds = [b"vault_authority", token_mint.key().as_ref()],
+        seeds = [
+            VAULT_AUTHORITY_STATIC_SEED, 
+            token_mint.key().as_ref()
+        ],
         bump
     )]
     pub vault_authority: UncheckedAccount<'info>,
