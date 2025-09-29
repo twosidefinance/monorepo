@@ -1,21 +1,34 @@
 use anchor_lang::prelude::*;
-use anchor_lang::system_program::{create_account, CreateAccount};
-use anchor_lang::solana_program::program::{invoke};
-use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, mint_to, Burn, TransferChecked};
-use mpl_token_metadata::accounts::Metadata;
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_2022::{
-        spl_token_2022::{
-            extension::ExtensionType
-        },
-        InitializeMint2, initialize_mint2,
-    },
-    token_interface::{spl_token_metadata_interface::instruction::initialize},
+use anchor_lang::{
+    system_program::{create_account, CreateAccount},
+    solana_program::program::{invoke}
 };
-use anchor_spl::token::transfer_checked;
-use anchor_spl::token_interface::spl_token_2022;
-use anchor_spl::token_2022::spl_token_2022::state::Mint as Token2022Mint;
+
+use anchor_spl::{
+    token::{
+        self, 
+        Mint, 
+        Token, 
+        TokenAccount, 
+        MintTo, 
+        mint_to, 
+        Burn, 
+        TransferChecked, 
+        initialize_mint, 
+        InitializeMint, 
+        transfer_checked
+    },
+    associated_token::{AssociatedToken, get_associated_token_address}
+};
+
+use mpl_token_metadata::{
+    ID as metaplex_id,
+    accounts::Metadata,
+    instructions::{CreateV1Cpi, CreateV1CpiAccounts, CreateV1InstructionArgs},
+    types::TokenStandard::Fungible
+};
+
+use spl_associated_token_account::instruction::create_associated_token_account;
 
 declare_id!("Dua4QHV8oHr8Mxna9jngcTgACVVpitrAdDK4xVHufjCG");
 
@@ -53,13 +66,18 @@ pub mod buffcat {
     ) -> Result<()> {
         let system_program = &ctx.accounts.system_program;
         let token_program = &ctx.accounts.token_program;
+        let associated_token_program = &ctx.accounts.associated_token_program;
+        let mpl_token_metadata_program = &ctx.accounts.mpl_token_metadata_program;
+        let rent = &ctx.accounts.rent;
 
         let token_mint = &ctx.accounts.token_mint;
         let derivative_mint_acc = &ctx.accounts.derivative_mint;
         let derivative_authority = &ctx.accounts.derivative_authority;
+        let derivative_metadata_authority = &ctx.accounts.derivative_metadata_authority;
         let token_info = &mut ctx.accounts.token_info;
         let vault_authority = &ctx.accounts.vault_authority;
         let vault_ata = &ctx.accounts.vault_ata;
+        let metadata = &ctx.accounts.metadata;
 
         let global_info = &ctx.accounts.global_info;
         let founder_ata = &ctx.accounts.founder_ata;
@@ -68,6 +86,12 @@ pub mod buffcat {
         let signer = &ctx.accounts.signer;
         let signer_token_ata = &ctx.accounts.signer_token_ata;
         let signer_derivative_ata = &ctx.accounts.signer_derivative_ata;
+
+        require_keys_eq!(
+            mpl_token_metadata_program.key(),
+            metaplex_id,
+            BuffcatErrorCodes::InvalidMetaplexProgram
+        );
 
         require!(
             amount != 0, 
@@ -85,34 +109,41 @@ pub mod buffcat {
         let clock = Clock::get()?;
         let current_timestamp = clock.unix_timestamp;
 
+        let expected_ata = get_associated_token_address(
+            &signer.key(), 
+            &derivative_mint_acc.key()
+        );
+
+        require_keys_eq!(
+            signer_derivative_ata.key(),
+            expected_ata,
+            BuffcatErrorCodes::InvalidATA
+        );
+
+        // inside your instruction:
         if token_info.derivative_mint == Pubkey::default() {
-            if ctx.accounts.metadata.owner != &mpl_token_metadata::ID {
+            // 0) sanity: check the incoming metadata account is from Metaplex and non-empty
+            if metadata.owner != &metaplex_id {
                 return Err(BuffcatErrorCodes::InvalidMetadataProgram.into());
             }
-
-            if ctx.accounts.metadata.data_is_empty() {
+            if metadata.data_is_empty() {
                 return Err(BuffcatErrorCodes::UninitializedMetadata.into());
             }
 
-            let metadata: Metadata = Metadata::safe_deserialize(
-                &ctx.accounts.metadata.data.borrow()
-            )?;
+            // deserialize the on-chain metadata (you already had this)
+            let metadata: Metadata = Metadata::safe_deserialize(&metadata.data.borrow())?;
 
-            require_keys_eq!(
-                metadata.mint,
-                token_mint.key(),
-                BuffcatErrorCodes::MetadataMintMismatch
-            );
+            // ensure mint in the metadata matches the token_mint we expect
+            require_keys_eq!(metadata.mint, token_mint.key(), BuffcatErrorCodes::MetadataMintMismatch);
 
-            let derivative_name = "Liquid ".to_string() + &metadata.name;
-            let derivative_symbol = "li".to_string() + &metadata.symbol;
+            // build derivative name & symbol (same as your logic)
+            let derivative_name = format!("Liquid {}", metadata.name.trim_end()); // trim to be safe
+            let derivative_symbol = format!("li{}", metadata.symbol.trim_end());
 
-            let space = ExtensionType::try_calculate_account_len::<Token2022Mint>(&[
-                ExtensionType::MetadataPointer,
-            ]).unwrap();
-            let metadata_space = 500;
-            let lamports_required = (Rent::get()?).minimum_balance(space + metadata_space);
-
+            // --- Create the standard SPL Token Mint ---
+            let mint_lamports = (Rent::get()?).minimum_balance(Mint::LEN);
+            
+            // Create account for the new mint
             create_account(
                 CpiContext::new(
                     system_program.to_account_info(),
@@ -121,41 +152,76 @@ pub mod buffcat {
                         to: derivative_mint_acc.to_account_info(),
                     },
                 ),
-                lamports_required,
-                (space + metadata_space) as u64,
-                &token_program.key(),
+                mint_lamports,
+                Mint::LEN as u64,
+                &anchor_spl::token::ID, // Use standard token program ID
             )?;
 
-            initialize_mint2(
+            // Initialize the new mint
+            initialize_mint(
                 CpiContext::new(
                     token_program.to_account_info(),
-                    InitializeMint2 {
-                        mint:derivative_mint_acc.to_account_info(),
+                    InitializeMint {
+                        mint: derivative_mint_acc.to_account_info(),
+                        rent: rent.to_account_info(),
                     },
                 ),
-                9,
-                &derivative_authority.key(),
-                Some(&derivative_authority.key()),
+                9, // Decimals
+                &derivative_authority.key(), // Mint Authority
+                Some(&derivative_authority.key()), // Freeze Authority (optional)
             )?;
 
-            let initialize_metadata_ix = initialize(
-                &spl_token_2022::ID,
-                &derivative_mint_acc.key(),
-                &derivative_authority.key(),
-                &derivative_mint_acc.key(),
-                &derivative_authority.key(),
-                derivative_name,
-                derivative_symbol,
-                metadata.uri,
+            // --- Create Metaplex Metadata Account ---
+            
+            // Derive the Metadata PDA address
+            let (metadata_address, _bump) = Pubkey::find_program_address(
+                &[
+                    b"metadata",
+                    metaplex_id.as_ref(),
+                    derivative_mint_acc.key().as_ref(),
+                ],
+                &metaplex_id,
             );
 
-            invoke(
-                &initialize_metadata_ix,
-                &[derivative_mint_acc.to_account_info()],
-            )?;
+            require_eq!(
+                ctx.accounts.derivative_metadata.key(),
+                metadata_address,
+                BuffcatErrorCodes::InvalidDerivativeMetadataAddress
+            );
+
+            // Create the metadata account using CreateV1
+            CreateV1Cpi::new(
+                &mpl_token_metadata_program,
+                CreateV1CpiAccounts {
+                    authority: &derivative_metadata_authority.to_account_info(), // Update authority
+                    mint: (&derivative_mint_acc.to_account_info(), true),
+                    metadata: &ctx.accounts.derivative_metadata.to_account_info(), // Your metadata account
+                    payer: &signer.to_account_info(),
+                    system_program: &system_program.to_account_info(),
+                    sysvar_instructions: &ctx.accounts.sysvar_instructions.to_account_info(),
+                    update_authority: (&derivative_metadata_authority.to_account_info(), true),
+                    spl_token_program: Some(&token_program.to_account_info()), // Pass standard token program
+                    master_edition: None
+                },
+                CreateV1InstructionArgs {
+                    name: derivative_name,
+                    symbol: derivative_symbol,
+                    uri: metadata.uri,
+                    seller_fee_basis_points: 0, // Typically 0 for fungible tokens
+                    creators: None, // Optional
+                    primary_sale_happened: false,
+                    is_mutable: true, // Set to false if immutable
+                    token_standard: Fungible, // Important for fungible
+                    collection: None, // Optional
+                    uses: None, // Typically for NFTs
+                    collection_details: None, // Typically for NFTs
+                    rule_set: None, // For Programmable NFTs
+                    decimals: Some(9), // Match mint decimals
+                    print_supply: None, // For NFTs
+                },
+            ).invoke()?;
 
             token_info.derivative_mint = derivative_mint_acc.key();
-
             emit!(DerivativeTokenMinted {
                 token: token_mint.key(),
                 derivative: derivative_mint_acc.key(),
@@ -163,10 +229,36 @@ pub mod buffcat {
             });
         }
 
+
         require!(
             derivative_mint_acc.key() == token_info.derivative_mint, 
             BuffcatErrorCodes::InvalidDerivativeAddress
         );
+
+        if signer_derivative_ata.data_is_empty() {
+            let ix = create_associated_token_account(
+                &signer.key(),
+                &signer.key(),
+                &derivative_mint_acc.key(),
+                &associated_token_program.key()
+            );
+
+            let account_infos = &[
+                signer.to_account_info(),
+                signer_derivative_ata.to_account_info(),
+                signer.to_account_info(),
+                derivative_mint_acc.to_account_info(),
+                system_program.to_account_info(),
+                token_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+                associated_token_program.to_account_info(),
+            ];
+
+            invoke(
+                &ix,
+                account_infos,
+            )?;
+        }
 
         let cpi_accounts = TransferChecked {
             mint: token_mint.to_account_info(),
@@ -322,7 +414,7 @@ pub mod buffcat {
         let global_info = &ctx.accounts.global_info;
         require!(
             signer.key() == global_info.founder_wallet, 
-            BuffcatErrorCodes::InvalidPubkey
+            BuffcatErrorCodes::NotAuthorized
         );
         let authorized_updater  = &mut ctx.accounts.authorized_updater_info;
         authorized_updater.key = updater;
@@ -410,6 +502,12 @@ pub struct Lock<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+    /// CHECK: This is the Metaplex Token Metadata program
+    pub mpl_token_metadata_program: UncheckedAccount<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    /// CHECK: Instructions sysvar must be passed in
+    #[account(address = anchor_lang::solana_program::sysvar::ID)]
+    pub sysvar_instructions: UncheckedAccount<'info>,
 
     // Lock Token Mint :-
     #[account(
@@ -432,6 +530,27 @@ pub struct Lock<'info> {
     )]
     /// CHECK: Derivative Token's Mint Authority.
     pub derivative_authority: UncheckedAccount<'info>,
+    /// CHECK: Metaplex Metadata account PDA, derived from mint and Metaplex program ID
+    #[account(
+        mut,
+        seeds = [
+            b"metadata",
+            mpl_token_metadata_program.key().as_ref(),
+            derivative_mint.key().as_ref()
+        ],
+        bump,
+        seeds::program = mpl_token_metadata_program.key()
+    )]
+    pub derivative_metadata: UncheckedAccount<'info>,
+        /// CHECK: Token Vault's Authority.
+    #[account(
+        seeds = [
+            DERIVATIVE_METADATA_AUTHORITY_STATIC_SEED, 
+            token_mint.key().as_ref()
+        ],
+        bump
+    )]
+    pub derivative_metadata_authority: UncheckedAccount<'info>,
 
     // User :-
     #[account(mut)]
@@ -441,11 +560,8 @@ pub struct Lock<'info> {
         && signer_token_ata.mint == token_mint.key()
     )]
     pub signer_token_ata: Account<'info, TokenAccount>,
-    #[account(
-        constraint = signer_derivative_ata.owner == signer.key()
-        && signer_derivative_ata.mint == derivative_mint.key()
-    )]
-    pub signer_derivative_ata: Account<'info, TokenAccount>,
+    /// CHECK: User Derivative Token ATA
+    pub signer_derivative_ata: UncheckedAccount<'info>,
 
     // Token Accounts :-
     #[account(
@@ -662,6 +778,7 @@ pub const VAULT_AUTHORITY_STATIC_SEED: &[u8] = b"vault_authority";
 pub const AUTHORIZED_UPDATER_INFO_STATIC_SEED: &[u8] = b"authorized_updater_info";
 pub const METADATA_STATIC_SEED: &[u8] = b"metadata";
 pub const DERIVATIVE_AUTHORITY_SEED: &[u8] = b"derivative_authority";
+pub const DERIVATIVE_METADATA_AUTHORITY_STATIC_SEED: &[u8] = b"derivative_metadata_authority";
 
 #[account]
 pub struct GlobalInfo {
@@ -719,10 +836,16 @@ pub enum BuffcatErrorCodes {
     NotWhitelisted,
     #[msg("Now owned by official program")]
     InvalidMetadataProgram,
-    #[msg("Metadata not initalized.")]
+    #[msg("Not metaplex metadata.")]
     UninitializedMetadata,
     #[msg("Metadata is not of token submitted.")]
     MetadataMintMismatch,
+    #[msg("ATA submitted is invalid")]
+    InvalidATA,
+    #[msg("Invalid program sent as metaplex program")]
+    InvalidMetaplexProgram,
+    #[msg("Invalid derivative metadata address")]
+    InvalidDerivativeMetadataAddress,
 }
 
 // Events
