@@ -11,6 +11,8 @@ import {
   TOKEN_INFO_STATIC_SEED,
   AUTHORIZED_UPDATER_INFO_STATIC_SEED,
   VAULT_AUTHORITY_STATIC_SEED,
+  DERIVATIVE_AUTHORITY_STATIC_SEED,
+  DERIVATIVE_MINT_STATIC_SEED,
 } from "./setup";
 import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 import {
@@ -113,9 +115,28 @@ describe("Token Locking", () => {
         tokenMint,
         user.publicKey
       );
-      const userDerivativeAta = await splToken.getAssociatedTokenAddressSync(
-        derivativeMint.publicKey,
-        user.publicKey
+      // explicit canonical ATA derivation -- unambiguous
+      const [userDerivativeAta] = PublicKey.findProgramAddressSync(
+        [
+          user.publicKey.toBuffer(), // owner
+          splToken.TOKEN_PROGRAM_ID.toBuffer(), // spl-token program id
+          derivativeMint.publicKey.toBuffer(), // mint
+        ],
+        splToken.ASSOCIATED_TOKEN_PROGRAM_ID // associated token program id
+      );
+      console.log("explicit derived ATA:", userDerivativeAta.toString());
+      console.log(
+        "client derived userDerivativeAta (toString):",
+        userDerivativeAta.toString()
+      );
+      console.log(
+        "client derived userDerivativeAta (constructor):",
+        userDerivativeAta.constructor.name
+      );
+      console.log("token program: ", splToken.TOKEN_PROGRAM_ID);
+      console.log(
+        "associated token program: ",
+        splToken.ASSOCIATED_TOKEN_PROGRAM_ID
       );
       const developerAta = await splToken.getOrCreateAssociatedTokenAccount(
         connection,
@@ -218,24 +239,86 @@ describe("Token Locking", () => {
         "Wrong Vault Authority Bump Set"
       );
 
+      console.log(
+        "MPL_TOKEN_METADATA_PROGRAM_ID: ",
+        MPL_TOKEN_METADATA_PROGRAM_ID
+      );
+
+      console.log("");
+
+      console.log("Token Mint: ", tokenMint.toString());
+      console.log("Token Metadata: ", metadata);
+      console.log("Token Derivative: ", derivativeMint.publicKey);
+
+      const [derivativeAuthorityPDA, derivativeAuthorityBump] =
+        anchor.web3.PublicKey.findProgramAddressSync(
+          [DERIVATIVE_AUTHORITY_STATIC_SEED, tokenMint.toBuffer()],
+          program.programId
+        );
+      console.log(
+        "Token Derivative Authority: ",
+        derivativeAuthorityPDA.toString()
+      );
+
+      console.log("");
+
+      console.log("Signer: ", user.publicKey.toString());
+      console.log("Signer Token ATA: ", userTokenAta.address.toString());
+      console.log(
+        "Signer Token Derivative ATA: ",
+        userDerivativeAta.toString()
+      );
+
+      console.log("");
+
+      console.log("Developer Token ATA: ", developerAta.address.toString());
+      console.log("Founder Token ATA: ", founderAta.address.toString());
+
       // Lock tokens
       const lockAmount = 10 * 10 ** tokenDecimals;
       const tx = await program.methods
         .lock(new anchor.BN(lockAmount))
         .accounts({
           tokenMint: tokenMint,
-          metadata: metadataPDA,
-          derivativeMint: derivativeMint.publicKey,
+          tokenMetadata: metadataPDA,
           signer: user.publicKey,
           signerTokenAta: userTokenAta.address,
-          signerDerivativeAta: userDerivativeAta,
           developerAta: developerAta.address,
           founderAta: founderAta.address,
           mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
         })
-        .signers([user])
+        .signers([user, derivativeMint])
         .rpc();
       console.log("Lock TX:", tx);
+
+      // Derive derivative mint and check if token decimals
+      const [derivativeMintPDA, derivativeMintBump] =
+        anchor.web3.PublicKey.findProgramAddressSync(
+          [DERIVATIVE_MINT_STATIC_SEED, tokenMint.toBuffer()],
+          program.programId
+        );
+      const derivativeMintAccount = await splToken.getMint(
+        connection,
+        derivativeMintPDA
+      );
+      // are equal to token mint decimals
+      assert(
+        derivativeMintAccount.decimals == tokenDecimals,
+        "Wrong Token Decimals"
+      );
+      assert(
+        derivativeMintAccount.mintAuthority == derivativeAuthorityPDA,
+        "Wrong Mint Authority"
+      );
+      assert(
+        derivativeMintAccount.freezeAuthority == derivativeAuthorityPDA,
+        "Wrong Freeze Authority"
+      );
+      // check supply has increased
+      assert(
+        derivativeMintAccount.supply == BigInt(lockAmount * 0.95),
+        "Wrong Total Supply"
+      );
     } catch (err: any) {
       console.error("Caught error:", err);
 

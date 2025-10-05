@@ -18,7 +18,10 @@ export const AUTHORIZED_UPDATER_INFO_STATIC_SEED = Buffer.from(
   "authorized_updater_info"
 );
 export const METADATA_STATIC_SEED = Buffer.from("metadata");
-export const DERIVATIVE_AUTHORITY_SEED = Buffer.from("derivative_authority");
+export const DERIVATIVE_AUTHORITY_STATIC_SEED = Buffer.from(
+  "derivative_authority"
+);
+export const DERIVATIVE_MINT_STATIC_SEED = Buffer.from("derivative_mint");
 
 export const [globalInfoPDA, globalInfoBump] =
   anchor.web3.PublicKey.findProgramAddressSync(

@@ -21,6 +21,6 @@ anchor-debug = []
 anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
 anchor-spl = { version = "0.31.1", features = ["token", "associated_token", "metadata"] }
 spl-associated-token-account = { version = "7.0.0", features = ["no-entrypoint"] }
-mpl-token-metadata = "5.0.0"
+mpl-token-metadata = "5.1.1"
 borsh = "0.9"
 borsh-derive = "0.9"
