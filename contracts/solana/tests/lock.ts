@@ -14,6 +14,13 @@ import {
   DERIVATIVE_AUTHORITY_STATIC_SEED,
   DERIVATIVE_MINT_STATIC_SEED,
   METADATA_STATIC_SEED,
+  tokenDecimals,
+  getOrCreateTokenMint,
+  getOrCreateUserTokenAta,
+  getOrCreateFounderAta,
+  getOrCreateDeveloperAta,
+  getOrCreateDerivativeMint,
+  getOrCreateUserDerivativeAta,
 } from "./setup";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
@@ -48,16 +55,9 @@ describe("Token Locking", () => {
         symbol: "MT",
         uri: "https://example.com/metadata.json",
       };
-      const tokenDecimals = 6;
-
-      const tokenMint = await splToken.createMint(
-        connection,
-        user,
-        user.publicKey,
-        user.publicKey,
-        tokenDecimals
-      );
+      const tokenMint = await getOrCreateTokenMint();
       const tokenAccount = await splToken.getMint(connection, tokenMint);
+      const derivativeMint = await getOrCreateDerivativeMint();
 
       assert(tokenAccount.isInitialized == true, "Token Mint Not Initialized");
       assert(
@@ -73,11 +73,6 @@ describe("Token Locking", () => {
         "Wrong Freeze Authority Set"
       );
       assert(tokenAccount.supply == BigInt(0), "Wrong Token Supply");
-
-      const [derivativeMint] = anchor.web3.PublicKey.findProgramAddressSync(
-        [DERIVATIVE_MINT_STATIC_SEED, tokenMint.toBuffer()],
-        program.programId
-      );
 
       const [tokenMetadataPDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [
@@ -123,20 +118,7 @@ describe("Token Locking", () => {
         ...data,
       }).sendAndConfirm(umi);
 
-      const userTokenAta = await splToken.getOrCreateAssociatedTokenAccount(
-        connection,
-        user,
-        tokenMint,
-        user.publicKey
-      );
-      const [userDerivativeAta] = PublicKey.findProgramAddressSync(
-        [
-          user.publicKey.toBuffer(),
-          splToken.TOKEN_PROGRAM_ID.toBuffer(),
-          derivativeMint.toBuffer(),
-        ],
-        splToken.ASSOCIATED_TOKEN_PROGRAM_ID
-      );
+      const userTokenAta = await getOrCreateUserTokenAta();
       const [vaultAta] = PublicKey.findProgramAddressSync(
         [
           user.publicKey.toBuffer(),
@@ -145,18 +127,8 @@ describe("Token Locking", () => {
         ],
         splToken.ASSOCIATED_TOKEN_PROGRAM_ID
       );
-      let developerAta = await splToken.getOrCreateAssociatedTokenAccount(
-        connection,
-        developer,
-        tokenMint,
-        developer.publicKey
-      );
-      let founderAta = await splToken.getOrCreateAssociatedTokenAccount(
-        connection,
-        founder,
-        tokenMint,
-        founder.publicKey
-      );
+      let founderAta = await getOrCreateFounderAta();
+      let developerAta = await getOrCreateDeveloperAta();
 
       const initialBalance = 100 * 10 ** tokenDecimals;
       await splToken.mintTo(
@@ -377,6 +349,7 @@ describe("Token Locking", () => {
         "Wrong User ATA Balance 2"
       );
 
+      const userDerivativeAta = await getOrCreateUserDerivativeAta();
       const userDerivativeAtaAccount = await splToken.getAccount(
         connection,
         userDerivativeAta

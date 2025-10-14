@@ -579,28 +579,42 @@ pub struct Unlock<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
 
     #[account(
+        mut,
         constraint = token_mint.is_initialized
         @ ProgramError::UninitializedAccount
     )]
-    pub token_mint: Account<'info, Mint>,
+    pub token_mint: Box<Account<'info, Mint>>,
 
+    /// CHECK: Derivative Token's Mint Authority.
+    #[account(
+        seeds = [
+        DERIVATIVE_AUTHORITY_SEED,
+        token_mint.key().as_ref()
+        ], bump
+    )]
+    pub derivative_authority: UncheckedAccount<'info>,
     #[account(
         mut,
-        constraint = derivative_mint.key() == token_info.derivative_mint
-        @ BuffcatErrorCodes::InvalidDerivativeAddress
+        mint::decimals = token_mint.decimals,
+        mint::authority = derivative_authority,
+        mint::freeze_authority = derivative_authority,
+        seeds = [DERIVATIVE_MINT_STATIC_SEED, token_mint.key().as_ref()],
+        bump
     )]
-    pub derivative_mint: Account<'info, Mint>,
+    pub derivative_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(
-        constraint = signer_token_ata.owner == signer.key()
-        && signer_token_ata.mint == token_mint.key()
+        mut,
+        token::mint = token_mint,
+        token::authority = signer,
     )]
     pub signer_token_ata: Account<'info, TokenAccount>,
     #[account(
-        constraint = signer_derivative_ata.owner == signer.key()
-        && signer_derivative_ata.mint == derivative_mint.key()
+        mut,
+        associated_token::mint = derivative_mint,
+        associated_token::authority = signer,
     )]
     pub signer_derivative_ata: Account<'info, TokenAccount>,
 
@@ -613,7 +627,8 @@ pub struct Unlock<'info> {
         bump,
         constraint = token_info.original_mint == token_mint.key()
     )]
-    pub token_info: Account<'info, TokenInfo>,
+    pub token_info: Box<Account<'info, TokenInfo>>,
+
     #[account(
         seeds = [
             VAULT_AUTHORITY_STATIC_SEED, 
@@ -624,26 +639,29 @@ pub struct Unlock<'info> {
     /// CHECK: Token Vault's Authority.
     pub vault_authority: UncheckedAccount<'info>,
     #[account(
-        init_if_needed,
-        payer = signer,
+        mut,
         associated_token::mint = token_mint,
-        associated_token::authority = vault_authority
+        associated_token::authority = vault_authority,
     )]
     pub vault_ata: Account<'info, TokenAccount>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_INFO_STATIC_SEED], 
         bump,
     )]
-    pub global_info: Account<'info, GlobalInfo>,
+    pub global_info: Box<Account<'info, GlobalInfo>>,
+
     #[account(
+        mut,
+        token::mint = token_mint,
         constraint = founder_ata.owner == global_info.founder_wallet
-        && founder_ata.mint == token_mint.key()
     )]
     pub founder_ata: Account<'info, TokenAccount>,
     #[account(
+        mut,
+        token::mint = token_mint,
         constraint = developer_ata.owner == global_info.developer_wallet
-        && developer_ata.mint == token_mint.key()
     )]
     pub developer_ata: Account<'info, TokenAccount>,
 }

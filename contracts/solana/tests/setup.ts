@@ -1,6 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import type { Buffcat } from "../target/types/buffcat";
+import * as splToken from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 
 export const provider = anchor.AnchorProvider.env();
 anchor.setProvider(provider);
@@ -64,4 +66,87 @@ export async function deployProgram() {
     })
     .signers([user])
     .rpc();
+}
+
+export const tokenDecimals = 6;
+
+let tokenMint: PublicKey | null = null;
+export async function getOrCreateTokenMint() {
+  if (tokenMint == null) {
+    tokenMint = await splToken.createMint(
+      connection,
+      user,
+      user.publicKey,
+      user.publicKey,
+      tokenDecimals
+    );
+    return tokenMint;
+  }
+  return tokenMint;
+}
+
+export async function getOrCreateDerivativeMint(): Promise<PublicKey> {
+  const tokenMint = await getOrCreateTokenMint();
+  let [derivativeMintPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+    [DERIVATIVE_MINT_STATIC_SEED, tokenMint.toBuffer()],
+    program.programId
+  );
+  return derivativeMintPDA;
+}
+
+let userTokenAta = null;
+export async function getOrCreateUserTokenAta() {
+  const tokenMint = await getOrCreateTokenMint();
+  if (userTokenAta == null) {
+    userTokenAta = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      user,
+      tokenMint,
+      user.publicKey
+    );
+    return userTokenAta;
+  }
+  return userTokenAta;
+}
+
+export async function getOrCreateUserDerivativeAta(): Promise<PublicKey> {
+  const derivativeMint = await getOrCreateDerivativeMint();
+  const [userDerivativeAta] = PublicKey.findProgramAddressSync(
+    [
+      user.publicKey.toBuffer(),
+      splToken.TOKEN_PROGRAM_ID.toBuffer(),
+      derivativeMint.toBuffer(),
+    ],
+    splToken.ASSOCIATED_TOKEN_PROGRAM_ID
+  );
+  return userDerivativeAta;
+}
+
+let developerAta: splToken.Account | null = null;
+let founderAta: splToken.Account | null = null;
+export async function getOrCreateFounderAta(): Promise<splToken.Account> {
+  const tokenMint = await getOrCreateTokenMint();
+  if (founderAta == null) {
+    founderAta = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      founder,
+      tokenMint,
+      founder.publicKey
+    );
+    return founderAta;
+  }
+  return founderAta;
+}
+export async function getOrCreateDeveloperAta(): Promise<splToken.Account> {
+  const tokenMint = await getOrCreateTokenMint();
+  if (developerAta == null) {
+    developerAta = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      developer,
+      tokenMint,
+      developer.publicKey
+    );
+    return developerAta;
+  }
+  return developerAta;
 }
