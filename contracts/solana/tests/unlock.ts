@@ -21,15 +21,21 @@ describe("Token Unlocking", () => {
     let developerAta = await getOrCreateDeveloperAta();
     const userDerivativeAta = await getOrCreateUserDerivativeAta();
 
+    console.log("Token Mint: ", tokenMint.toString());
+    console.log("Derivative Mint: ", derivativeMint.toString());
+    console.log("");
+    console.log("");
+    console.log("Signer: ", user.publicKey.toString());
+    console.log("Signer Token ATA: ", userTokenAta.address.toString());
+    console.log("Signer Derivative ATA: ", userDerivativeAta.toString());
+
     const unlockAmount = 5 * 10 ** tokenDecimals;
     await program.methods
       .unlock(new anchor.BN(unlockAmount))
       .accounts({
         tokenMint: tokenMint,
-        derivativeMint: derivativeMint,
         signer: user.publicKey,
-        signerTokenAta: userTokenAta,
-        signerDerivativeAta: userDerivativeAta,
+        signerTokenAta: userTokenAta.address,
         founderAta: founderAta.address,
         developerAta: developerAta.address,
       })

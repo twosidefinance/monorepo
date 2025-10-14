@@ -318,6 +318,14 @@ pub mod buffcat {
         let cpi_program = token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::burn(cpi_ctx, amount)?;
+
+        let mint_key = token_mint.key();
+        let vault_authority_seeds: &[&[u8]] = &[
+            VAULT_AUTHORITY_STATIC_SEED,
+            mint_key.as_ref(),
+            &[ctx.bumps.vault_authority],
+        ];
+        let vault_authority_slice: &[&[&[u8]]] = &[vault_authority_seeds];
     
         let cpi_accounts = TransferChecked {
             mint: token_mint.to_account_info(),
@@ -326,7 +334,10 @@ pub mod buffcat {
             authority: vault_authority.to_account_info(),
         };
         let cpi_program = token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+        let cpi_context = CpiContext::new(
+            cpi_program, 
+            cpi_accounts
+        ).with_signer(vault_authority_slice);
         transfer_checked(cpi_context, deducted_amount, token_mint.decimals)?;
 
         emit!(AssetsUnlocked { 
@@ -385,8 +396,8 @@ pub fn distribute_fee<'info>(
     vault_ata: &Account<'info, TokenAccount>,
     token_program: &Program<'info, Token>
 ) -> Result<()> {
-    let developer_share = (fee * global_info.developer_fee_share) / 100;
-    let founder_share = (fee * global_info.founder_fee_share) / 100;
+    let developer_share = fee / 2;
+    let founder_share = fee / 2;
 
     let mint_key = token_mint.key();
     let seeds: &[&[u8]] = &[
@@ -394,7 +405,7 @@ pub fn distribute_fee<'info>(
         mint_key.as_ref(),
         &[vault_authority_bump],
     ];
-    let signer_seeds: &[&[&[u8]]] = &[seeds];
+    let signer_slice: &[&[&[u8]]] = &[seeds];
  
     let cpi_accounts = TransferChecked {
         mint: token_mint.to_account_info(),
@@ -406,7 +417,7 @@ pub fn distribute_fee<'info>(
     let cpi_context = CpiContext::new(
         cpi_program, 
         cpi_accounts)
-        .with_signer(signer_seeds);
+        .with_signer(signer_slice);
     transfer_checked(cpi_context, developer_share, token_mint.decimals)?;
 
     let cpi_accounts = TransferChecked {
@@ -419,7 +430,7 @@ pub fn distribute_fee<'info>(
     let cpi_context = CpiContext::new(
         cpi_program, 
         cpi_accounts)
-        .with_signer(signer_seeds);
+        .with_signer(signer_slice);
     transfer_checked(cpi_context, founder_share, token_mint.decimals)?;
 
     // add ata field

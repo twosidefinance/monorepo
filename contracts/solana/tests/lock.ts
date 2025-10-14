@@ -119,11 +119,18 @@ describe("Token Locking", () => {
       }).sendAndConfirm(umi);
 
       const userTokenAta = await getOrCreateUserTokenAta();
+
+      const [vaultAuthorityPDA, vaultAuthorityBump] =
+        anchor.web3.PublicKey.findProgramAddressSync(
+          [VAULT_AUTHORITY_STATIC_SEED, tokenMint.toBuffer()],
+          program.programId
+        );
+
       const [vaultAta] = PublicKey.findProgramAddressSync(
         [
-          user.publicKey.toBuffer(),
+          vaultAuthorityPDA.toBuffer(),
           splToken.TOKEN_PROGRAM_ID.toBuffer(),
-          derivativeMint.toBuffer(),
+          tokenMint.toBuffer(),
         ],
         splToken.ASSOCIATED_TOKEN_PROGRAM_ID
       );
@@ -192,12 +199,6 @@ describe("Token Locking", () => {
         );
 
       const tokenInfo = await program.account.tokenInfo.fetch(tokenInfoPDA);
-
-      const [vaultAuthorityPDA, vaultAuthorityBump] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [VAULT_AUTHORITY_STATIC_SEED, tokenMint.toBuffer()],
-          program.programId
-        );
 
       assert(
         tokenInfo.originalMint.toString() == tokenMint.toString(),
@@ -268,7 +269,7 @@ describe("Token Locking", () => {
         "Wrong Derivative Total Supply"
       );
 
-      const feeShare = (lockAmount * 0.005) / 2;
+      const feeShare = (lockAmount * 5) / 2000;
 
       developerAta = await splToken.getOrCreateAssociatedTokenAccount(
         connection,
@@ -361,6 +362,16 @@ describe("Token Locking", () => {
       assert(
         userDerivativeAtaAccount.amount == BigInt(lockAmount * 0.995),
         "Wrong User Derivative ATA Balance 2"
+      );
+
+      const vaultAtaAccount = await splToken.getAccount(connection, vaultAta);
+      assert(
+        vaultAtaAccount.mint.toString() == tokenMint.toString(),
+        "Wrong Vault ATA Mint"
+      );
+      assert(
+        vaultAtaAccount.amount == BigInt(lockAmount - feeShare * 2),
+        "Wrong Vault ATA Balance"
       );
     } catch (err: any) {
       console.error("Caught error:", err);

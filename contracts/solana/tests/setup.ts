@@ -71,7 +71,7 @@ export async function deployProgram() {
 export const tokenDecimals = 6;
 
 let tokenMint: PublicKey | null = null;
-export async function getOrCreateTokenMint() {
+export async function getOrCreateTokenMint(): Promise<PublicKey> {
   if (tokenMint == null) {
     tokenMint = await splToken.createMint(
       connection,
@@ -95,7 +95,7 @@ export async function getOrCreateDerivativeMint(): Promise<PublicKey> {
 }
 
 let userTokenAta = null;
-export async function getOrCreateUserTokenAta() {
+export async function getOrCreateUserTokenAta(): Promise<splToken.Account> {
   const tokenMint = await getOrCreateTokenMint();
   if (userTokenAta == null) {
     userTokenAta = await splToken.getOrCreateAssociatedTokenAccount(

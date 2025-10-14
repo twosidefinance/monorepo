@@ -8,12 +8,12 @@ import {
   globalInfoPDA,
 } from "./setup";
 
-describe("initialize", () => {
+describe("Program Initialization", () => {
   before(async () => {
     await airdropToWallets();
   });
 
-  it("Program Initialization", async () => {
+  it("Normal Initialization", async () => {
     const tx = await program.methods
       .initializeProgram(developer.publicKey, founder.publicKey)
       .accounts({
