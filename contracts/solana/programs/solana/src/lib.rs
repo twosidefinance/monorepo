@@ -42,6 +42,7 @@ pub mod buffcat {
             BuffcatErrorCodes::InvalidPubkey
         );
         let global_info = &mut ctx.accounts.global_info;
+        global_info.is_initialized = true;
         global_info.developer_wallet = developer_wallet;
         global_info.founder_wallet = founder_wallet;
         global_info.fee_percentage = 5;
@@ -363,6 +364,7 @@ pub mod buffcat {
     pub fn whitelist(ctx: Context<Whitelist>) -> Result<()> {
         let token_mint = &ctx.accounts.token_mint;
         let token_info = &mut ctx.accounts.token_info;
+        token_info.is_initialized = true;
         token_info.original_mint = token_mint.key();
         token_info.whitelisted = true;
         token_info.vault_authority_bump = ctx.bumps.vault_authority;
@@ -380,6 +382,7 @@ pub mod buffcat {
             BuffcatErrorCodes::NotAuthorized
         );
         let authorized_updater  = &mut ctx.accounts.authorized_updater_info;
+        authorized_updater.is_initialized = true;
         authorized_updater.key = updater;
         authorized_updater.active = true;
         Ok(())
@@ -555,7 +558,8 @@ pub struct Lock<'info> {
             token_mint.key().as_ref()
         ], 
         bump,
-        constraint = token_info.original_mint == token_mint.key()
+        constraint = token_info.original_mint == token_mint.key() 
+        && token_info.is_initialized
     )]
     pub token_info: Box<Account<'info, TokenInfo>>,
 
@@ -580,6 +584,8 @@ pub struct Lock<'info> {
         mut,
         seeds = [GLOBAL_INFO_STATIC_SEED], 
         bump,
+        constraint = global_info.is_initialized 
+        @ ProgramError::UninitializedAccount
     )]
     pub global_info: Box<Account<'info, GlobalInfo>>,
 
@@ -650,7 +656,8 @@ pub struct Unlock<'info> {
             token_mint.key().as_ref()
         ], 
         bump,
-        constraint = token_info.original_mint == token_mint.key()
+        constraint = token_info.original_mint == token_mint.key() &&
+        token_info.is_initialized
     )]
     pub token_info: Box<Account<'info, TokenInfo>>,
 
@@ -674,6 +681,8 @@ pub struct Unlock<'info> {
         mut,
         seeds = [GLOBAL_INFO_STATIC_SEED], 
         bump,
+        constraint = global_info.is_initialized 
+        @ ProgramError::UninitializedAccount
     )]
     pub global_info: Box<Account<'info, GlobalInfo>>,
 
@@ -714,6 +723,8 @@ pub struct AddAuthorizedUpdater<'info> {
     #[account( 
         seeds = [GLOBAL_INFO_STATIC_SEED], 
         bump,
+        constraint = global_info.is_initialized 
+        @ ProgramError::UninitializedAccount
     )]
     pub global_info: Account<'info, GlobalInfo>,
 }
@@ -736,7 +747,7 @@ pub struct Whitelist<'info> {
         ], 
         bump,
         constraint = authorized_updater_info.active
-        @ BuffcatErrorCodes::NotAuthorized
+        && authorized_updater_info.is_initialized
     )]
     pub authorized_updater_info: Account<'info, AuthorizedUpdaterInfo>,
     #[account(mut)]
@@ -776,6 +787,7 @@ pub const DERIVATIVE_MINT_STATIC_SEED: &[u8] = b"derivative_mint";
 
 #[account]
 pub struct GlobalInfo {
+    pub is_initialized: bool, // 1
     pub developer_wallet: Pubkey, // 32
     pub founder_wallet: Pubkey, // 32
     pub fee_percentage: u64, // 64 / 8 = 8
@@ -786,11 +798,12 @@ pub struct GlobalInfo {
 }
 
 impl GlobalInfo {
-    pub const LEN: usize = 32 + 32 + 8 + 8 + 8 + 8 + 2;
+    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8 + 2;
 }
 
 #[account]
 pub struct TokenInfo {
+    pub is_initialized: bool, // 1
     pub original_mint: Pubkey, // 32
     pub whitelisted: bool, // 1
     pub derivative_mint: Pubkey, // 32
@@ -798,17 +811,18 @@ pub struct TokenInfo {
 }
 
 impl TokenInfo {
-    pub const LEN: usize = 32 + 1 + 32 + 1;
+    pub const LEN: usize = 1 + 32 + 1 + 32 + 1;
 }
 
 #[account]
 pub struct AuthorizedUpdaterInfo {
+    pub is_initialized: bool, // 1
     pub key: Pubkey, // 32
     pub active: bool, // 1
 }
 
 impl AuthorizedUpdaterInfo {
-    pub const LEN: usize = 32 + 1;
+    pub const LEN: usize = 1 + 32 + 1;
 }
 
 // Error Codes 
