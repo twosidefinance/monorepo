@@ -239,6 +239,10 @@ describe("Token Locking", () => {
         derivativeMetadata.uri.toString() == tokenMetadata.uri,
         "Wrong Derivative URI"
       );
+      assert(
+        derivativeMetadata.mint.toString() == derivativeMint.toString(),
+        "Wrong Derivative Metadata Mint"
+      );
 
       const tokenMintAccount = await splToken.getMint(
         setup.connection,

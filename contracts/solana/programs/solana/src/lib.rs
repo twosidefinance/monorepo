@@ -66,7 +66,8 @@ pub mod buffcat {
         let token_info = &mut ctx.accounts.token_info;
         let vault_authority = &ctx.accounts.vault_authority;
         let vault_ata = &ctx.accounts.vault_ata;
-        let token_metadata = &ctx.accounts.token_metadata;
+        let token_metadata_acc = &ctx.accounts.token_metadata;
+        let derivative_metadata_acc = &ctx.accounts.derivative_metadata;
 
         let global_info = &ctx.accounts.global_info;
         let founder_ata = &ctx.accounts.founder_ata;
@@ -107,14 +108,38 @@ pub mod buffcat {
         let derivative_authority_slice: &[&[&[u8]]] = &[derivative_authority_seeds];
 
         if token_info.derivative_mint == Pubkey::default() {
-            if token_metadata.owner != &metaplex_id {
-                return Err(BuffcatErrorCodes::InvalidMetadataProgram.into());
-            }
-            if token_metadata.data_is_empty() {
-                return Err(BuffcatErrorCodes::UninitializedMetadata.into());
-            }
+            let (token_metadata_address, _token_metadata_bump) = Pubkey::find_program_address(
+                &[
+                    METADATA_STATIC_SEED,
+                    metaplex_id.as_ref(),
+                    token_mint.key().as_ref(),
+                ],
+                &metaplex_id,
+            );
 
-            let token_metadata: Metadata = Metadata::safe_deserialize(&token_metadata.data.borrow())?;
+            require_eq!(
+                token_metadata_acc.key(),
+                token_metadata_address,
+                BuffcatErrorCodes::InvalidTokenMetadataAddress
+            );
+
+            let (derivative_metadata_address, _derivative_metadata_bump) = Pubkey::find_program_address(
+                &[
+                    METADATA_STATIC_SEED,
+                    metaplex_id.as_ref(),
+                    derivative_mint.key().as_ref(),
+                ],
+                &metaplex_id,
+            );
+
+            require_eq!(
+                derivative_metadata_acc.key(),
+                derivative_metadata_address,
+                BuffcatErrorCodes::InvalidDerivativeMetadataAddress
+            );
+
+            let token_metadata: Metadata = Metadata::safe_deserialize(&token_metadata_acc.data.borrow())
+            .map_err(|_| BuffcatErrorCodes::UninitializedMetadata)?;
 
             require_keys_eq!(token_metadata.mint, token_mint.key(), BuffcatErrorCodes::MetadataMintMismatch);
 
@@ -128,21 +153,6 @@ pub mod buffcat {
             if derivative_symbol.as_bytes().len() > 10 {
                 derivative_symbol = String::from_utf8_lossy(&derivative_symbol.as_bytes()[..10]).to_string();
             }
-            
-            let (metadata_address, _bump) = Pubkey::find_program_address(
-                &[
-                    METADATA_STATIC_SEED,
-                    metaplex_id.as_ref(),
-                    derivative_mint.key().as_ref(),
-                ],
-                &metaplex_id,
-            );
-
-            require_eq!(
-                ctx.accounts.derivative_metadata.key(),
-                metadata_address,
-                BuffcatErrorCodes::InvalidDerivativeMetadataAddress
-            );
 
             let mint_key = token_mint.key();
             let derivative_mint_bump = ctx.bumps.derivative_mint;
@@ -155,7 +165,7 @@ pub mod buffcat {
 
             let rent_info = ctx.accounts.rent.to_account_info();
             let cpi_accounts = CreateMetadataAccountV3CpiAccounts {
-                metadata: &ctx.accounts.derivative_metadata.to_account_info(),
+                metadata: &derivative_metadata_acc.to_account_info(),
                 mint: &derivative_mint.to_account_info(),
                 mint_authority: &derivative_authority.to_account_info(),
                 payer: &signer.to_account_info(),
@@ -174,7 +184,7 @@ pub mod buffcat {
                     collection: None,
                     uses: None,
                 },
-                is_mutable: true,
+                is_mutable: false,
                 collection_details: None,
             };
 
@@ -484,7 +494,11 @@ pub struct Lock<'info> {
     )]
     pub token_mint: Box<Account<'info, Mint>>,
     /// CHECK: Metadata for token being locked
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = token_metadata.owner == &metaplex_id
+        @ ProgramError::IncorrectProgramId
+    )]
     pub token_metadata: AccountInfo<'info>,
 
     /// CHECK: Derivative Token's Mint Authority.
@@ -826,6 +840,8 @@ pub enum BuffcatErrorCodes {
     InvalidMetaplexProgram,
     #[msg("Invalid derivative metadata address")]
     InvalidDerivativeMetadataAddress,
+    #[msg("Invalid token metadata address")]
+    InvalidTokenMetadataAddress,
 }
 
 // Events
