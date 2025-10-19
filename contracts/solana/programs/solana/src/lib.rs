@@ -381,7 +381,8 @@ pub mod buffcat {
         let signer = &ctx.accounts.signer;
         let global_info = &ctx.accounts.global_info;
         require!(
-            signer.key() == global_info.founder_wallet, 
+            signer.key() == global_info.founder_wallet ||
+            signer.key() == global_info.developer_wallet,
             BuffcatErrorCodes::NotAuthorized
         );
         let authorized_updater  = &mut ctx.accounts.authorized_updater_info;
@@ -778,6 +779,7 @@ pub struct Whitelist<'info> {
         bump,
         constraint = authorized_updater_info.active
         && authorized_updater_info.is_initialized
+        && authorized_updater_info.key == signer.key()
     )]
     pub authorized_updater_info: Account<'info, AuthorizedUpdaterInfo>,
     #[account(mut)]
