@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-interface IBuffcat {
+interface ITwoside {
     // Events :-
     event DeveloperFeesDistributed(
         address developerWallet, 

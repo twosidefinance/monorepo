@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import type { Buffcat } from "../target/types/buffcat";
+import type { Twoside } from "../target/types/twoside";
 import * as splToken from "@solana/spl-token";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import {
@@ -49,7 +49,7 @@ class Setup {
   public umi: Umi;
   public umiSigner: KeypairSigner;
 
-  public program: anchor.Program<Buffcat>;
+  public program: anchor.Program<Twoside>;
 
   public developer: anchor.web3.Keypair;
   public founder: anchor.web3.Keypair;
@@ -79,7 +79,7 @@ class Setup {
     anchor.setProvider(this.provider);
     this.connection = this.provider.connection;
 
-    this.program = anchor.workspace.Buffcat as Program<Buffcat>;
+    this.program = anchor.workspace.Twoside as Program<Twoside>;
 
     this.developer = anchor.web3.Keypair.generate();
     this.founder = anchor.web3.Keypair.generate();

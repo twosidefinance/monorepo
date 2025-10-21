@@ -1,19 +1,19 @@
 import { Metadata } from "next";
 
 export const domain = {
-  https: "https://buffcat.com",
-  www: "www.buffcat.com",
-  full: "https://www.buffcat.com",
-  name: "buffcat.com",
+  https: "https://twoside.com",
+  www: "www.twoside.com",
+  full: "https://www.twoside.com",
+  name: "twoside.com",
 };
 
-export const buffcatWebsiteMetadata: Metadata = {
+export const twosideWebsiteMetadata: Metadata = {
   // Basic SEO
   title: {
-    default: "Buffcat - Token Locking Utility with Derivatives",
-    template: "%s | Buffcat",
+    default: "Twoside - Token Locking Utility with Derivatives",
+    template: "%s | Twoside",
   },
-  description: `Buffcat is a secure token locking utility where users lock their tokens 
+  description: `Twoside is a secure token locking utility where users lock their tokens 
     and receive tradeable derivatives that can be redeemed 1:1. 
     Maximize your DeFi strategy with flexible token management.`,
 
@@ -41,7 +41,7 @@ export const buffcatWebsiteMetadata: Metadata = {
     },
   ],
   creator: "Arav Bhivgade",
-  publisher: "Buffcat",
+  publisher: "Twoside",
   category: "DeFi",
   classification: "Financial Technology",
 
@@ -63,23 +63,23 @@ export const buffcatWebsiteMetadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: domain.https, // Replace with your actual domain
-    siteName: "Buffcat",
-    title: "Buffcat - Token Locking Utility with Derivatives",
+    siteName: "Twoside",
+    title: "Twoside - Token Locking Utility with Derivatives",
     description: `Secure token locking utility with 1:1 redeemable derivatives. 
       Optimize your DeFi strategy with flexible token management.`,
     images: [
       {
-        url: "/buffcat.png", // Create this image (1200x630px recommended)
+        url: "/Twoside.png", // Create this image (1200x630px recommended)
         width: 1200,
         height: 630,
-        alt: "Buffcat - Token Locking Platform",
+        alt: "Twoside - Token Locking Platform",
         type: "image/png",
       },
       {
-        url: "/buffcat.png", // Square version for some platforms
+        url: "/Twoside.png", // Square version for some platforms
         width: 800,
         height: 800,
-        alt: "Buffcat Logo",
+        alt: "Twoside Logo",
         type: "image/png",
       },
     ],
@@ -88,12 +88,12 @@ export const buffcatWebsiteMetadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "Buffcat - Token Locking Utility",
+    title: "Twoside - Token Locking Utility",
     description:
       "Lock tokens, get derivatives, redeem 1:1. Flexible DeFi token management.",
-    creator: "@BuffcatOfficial", // Replace with your Twitter handle
-    site: "@BuffcatOfficial",
-    images: ["/buffcat.png"], // 1200x600px recommended
+    creator: "@TwosideOfficial", // Replace with your Twitter handle
+    site: "@TwosideOfficial",
+    images: ["/Twoside.png"], // 1200x600px recommended
   },
 
   // Icons and visual branding
@@ -109,7 +109,7 @@ export const buffcatWebsiteMetadata: Metadata = {
     other: [
       {
         rel: "mask-icon",
-        url: "/buffcat.svg",
+        url: "/Twoside.svg",
         color: "#5bbad5",
       },
     ],
@@ -138,12 +138,12 @@ export const buffcatWebsiteMetadata: Metadata = {
     languages: {
       "en-US": domain.https,
       // Add other languages if you support them
-      // 'es-ES': 'https://buffcat.com/es',
+      // 'es-ES': 'https://Twoside.com/es',
     },
   },
 
   // Additional metadata
-  applicationName: "Buffcat",
+  applicationName: "Twoside",
   referrer: "origin-when-cross-origin",
   formatDetection: {
     email: false,
@@ -161,19 +161,19 @@ export const buffcatWebsiteMetadata: Metadata = {
   // App-specific metadata
   // appLinks: {
   //   ios: {
-  //     url: 'https://apps.apple.com/app/buffcat/id123456789',
+  //     url: 'https://apps.apple.com/app/Twoside/id123456789',
   //     app_store_id: '123456789',
   //   },
   //   android: {
-  //     url: 'https://play.google.com/store/apps/details?id=com.buffcat.app',
-  //     package: 'com.buffcat.app',
+  //     url: 'https://play.google.com/store/apps/details?id=com.Twoside.app',
+  //     package: 'com.Twoside.app',
   //   },
   // },
 
   // Apple-specific metadata
   // appleWebApp: {
   //   capable: true,
-  //   title: "Buffcat",
+  //   title: "Twoside",
   //   statusBarStyle: "default", // 'default' | 'black' | 'black-translucent'
   //   startupImage: [
   //     {
@@ -195,22 +195,22 @@ export const buffcatWebsiteMetadata: Metadata = {
   // },
 
   // // Archive/Wayback Machine
-  // archives: ["https://web.archive.org/web/*/buffcat.com"],
+  // archives: ["https://web.archive.org/web/*/Twoside.com"],
 
   // // Assets preloading
-  // assets: ["https://buffcat.com/fonts/custom-font.woff2"],
+  // assets: ["https://Twoside.com/fonts/custom-font.woff2"],
 
   // // Bookmarks (for bookmark apps)
-  // bookmarks: ["https://buffcat.com/bookmark-icon.png"],
+  // bookmarks: ["https://Twoside.com/bookmark-icon.png"],
 
   // Additional metadata for web crawlers
   // other: {
   //   // Microsoft/Bing
-  //   "application-name": "Buffcat",
+  //   "application-name": "Twoside",
   //   "msapplication-TileColor": "#da532c",
   //   "msapplication-TileImage": "/mstile-144x144.png",
   //   "msapplication-config": "/browserconfig.xml",
-  //   "msapplication-tooltip": "Buffcat Token Locking Utility",
+  //   "msapplication-tooltip": "Twoside Token Locking Utility",
   //   "msapplication-starturl": "/",
   //   "msapplication-navbutton-color": "#da532c",
 
@@ -218,7 +218,7 @@ export const buffcatWebsiteMetadata: Metadata = {
   //   "mobile-web-app-capable": "yes",
   //   "apple-mobile-web-app-capable": "yes",
   //   "apple-mobile-web-app-status-bar-style": "black-translucent",
-  //   "apple-mobile-web-app-title": "Buffcat",
+  //   "apple-mobile-web-app-title": "Twoside",
 
   //   // Content/Page specific
   //   "content-language": "en-US",
@@ -239,18 +239,18 @@ export const buffcatWebsiteMetadata: Metadata = {
   //   "referrer-policy": "strict-origin-when-cross-origin",
 
   //   // Social/Business info
-  //   contact: "support@buffcat.com",
-  //   copyright: "© 2025 Buffcat. All rights reserved.",
-  //   designer: "Buffcat Design Team",
-  //   owner: "Buffcat Team",
-  //   "reply-to": "support@buffcat.com",
+  //   contact: "support@Twoside.com",
+  //   copyright: "© 2025 Twoside. All rights reserved.",
+  //   designer: "Twoside Design Team",
+  //   owner: "Twoside Team",
+  //   "reply-to": "support@Twoside.com",
   //   url: domain.https,
   //   "identifier-url": domain.https,
   //   directory: "submission",
 
   //   // Structured data hints
-  //   "article:author": "Buffcat Team",
-  //   "article:publisher": "https://www.facebook.com/buffcat",
+  //   "article:author": "Twoside Team",
+  //   "article:publisher": "https://www.facebook.com/Twoside",
   //   "article:section": "Technology",
   //   "article:tag": "DeFi, Cryptocurrency, Token Locking",
 
@@ -281,7 +281,7 @@ export const buffcatWebsiteMetadata: Metadata = {
 export const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Buffcat",
+  name: "Twoside",
   description:
     "Token locking utility where users lock tokens and receive derivatives that can be redeemed 1:1",
   url: domain.https,
@@ -294,7 +294,7 @@ export const jsonLd = {
   },
   creator: {
     "@type": "Organization",
-    name: "Buffcat Team",
+    name: "Twoside Team",
   },
   featureList: [
     "Token Locking",

@@ -1,5 +1,5 @@
 {
-  "name": "buffcat",
+  "name": "twoside",
   "private": true,
   "scripts": {
     "build": "turbo run build",

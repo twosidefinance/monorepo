@@ -3,8 +3,7 @@ pragma solidity ^0.8.22;
 
 import {console} from "forge-std/console.sol";
 import {TestSetUp} from "./TestSetUp.sol";
-import {IBuffcat} from "../src/interfaces/IBuffcat.sol";
-import {BuffcatUpgradeable} from "../src/Buffcat.sol";
+import {ITwoside} from "../src/interfaces/ITwoside.sol";
 import {IERC20} from "@openzeppelin-contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -12,12 +11,12 @@ contract LockTests is TestSetUp {
     function testFeeDistribution() public {
         vm.startPrank(user);
 
-        token1.approve(address(buffcat), initialBalance);
+        token1.approve(address(twoside), initialBalance);
 
         uint256 lockAmount = 10e18;
         uint256 fees = calculateFee(lockAmount);
         uint256 feeShare = fees / 2;
-        buffcat.lock(address(token1), lockAmount);
+        twoside.lock(address(token1), lockAmount);
 
         uint256 founderBalance = token1.balanceOf(founder);
         assertEq(founderBalance, feeShare, "Wrong Founder Balance");
@@ -31,12 +30,12 @@ contract LockTests is TestSetUp {
     function testMinimumFee() public {
         vm.startPrank(user);
 
-        token1.approve(address(buffcat), initialBalance);
+        token1.approve(address(twoside), initialBalance);
 
         uint256 lockAmount = 399;
         uint256 fees = calculateFee(lockAmount);
         uint256 feeShare = fees / 2;
-        buffcat.lock(address(token1), lockAmount);
+        twoside.lock(address(token1), lockAmount);
 
         uint256 founderBalance = token1.balanceOf(founder);
         assertEq(founderBalance, feeShare, "Wrong Founder Balance");
@@ -50,15 +49,15 @@ contract LockTests is TestSetUp {
     function testInvalidAmount() public {
         vm.startPrank(user);
 
-        token1.approve(address(buffcat), initialBalance);
+        token1.approve(address(twoside), initialBalance);
 
         uint256 lockAmount = 1;
-        vm.expectRevert(IBuffcat.AmountInsufficientAfterFee.selector);
-        buffcat.lock(address(token1), lockAmount);
+        vm.expectRevert(ITwoside.AmountInsufficientAfterFee.selector);
+        twoside.lock(address(token1), lockAmount);
 
         lockAmount = 2;
-        vm.expectRevert(IBuffcat.AmountInsufficientAfterFee.selector);
-        buffcat.lock(address(token1), lockAmount);
+        vm.expectRevert(ITwoside.AmountInsufficientAfterFee.selector);
+        twoside.lock(address(token1), lockAmount);
 
         vm.stopPrank();
     }

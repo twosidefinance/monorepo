@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
                 </p>
                 <div className="flex space-x-4">
                   <a
-                    href="https://x.com/BuffcatOfficial"
+                    href="https://x.com/TwosideOfficial"
                     target="_blank"
                     className="hover:text-white text-gray-400 transition-colors duration-200"
                   >
@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
                 <ul className="space-y-3">
                   <li>
                     <a
-                      href="https://docs.buffcat.org/"
+                      href="https://docs.twoside.org/"
                       target="_blank"
                       className="cursor-pointer transition-colors duration-200"
                     >

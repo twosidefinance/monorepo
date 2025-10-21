@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IBuffcat} from "./interfaces/IBuffcat.sol";
+import {ITwoside} from "./interfaces/ITwoside.sol";
 import {SafeERC20} from "@openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -12,8 +12,8 @@ import {Clones} from "@openzeppelin-contracts/proxy/Clones.sol";
 import {IToken} from "./interfaces/IToken.sol";
 import {DerivativeToken} from "./token/DerivativeToken.sol";
 
-contract BuffcatUpgradeable is
-    IBuffcat,
+contract TwosideUpgradeable is
+    ITwoside,
     Initializable,
     OwnableUpgradeable,
     UUPSUpgradeable,

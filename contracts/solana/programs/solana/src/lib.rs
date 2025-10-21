@@ -25,7 +25,7 @@ use mpl_token_metadata::{
 declare_id!("Dua4QHV8oHr8Mxna9jngcTgACVVpitrAdDK4xVHufjCG");
 
 #[program]
-pub mod buffcat {
+pub mod twoside {
     use super::*;
 
     pub fn initialize_program(
@@ -35,11 +35,11 @@ pub mod buffcat {
     ) -> Result<()> {
         require!(
             developer_wallet != Pubkey::default(),
-            BuffcatErrorCodes::InvalidPubkey
+            TwosideErrorCodes::InvalidPubkey
         );
         require!(
             founder_wallet != Pubkey::default(),
-            BuffcatErrorCodes::InvalidPubkey
+            TwosideErrorCodes::InvalidPubkey
         );
         let global_info = &mut ctx.accounts.global_info;
         global_info.is_initialized = true;
@@ -82,16 +82,16 @@ pub mod buffcat {
         require_keys_eq!(
             mpl_token_metadata_program.key(),
             metaplex_id,
-            BuffcatErrorCodes::InvalidMetaplexProgram
+            TwosideErrorCodes::InvalidMetaplexProgram
         );
 
         require!(
             amount != 0, 
-            BuffcatErrorCodes::ZeroAmountValue
+            TwosideErrorCodes::ZeroAmountValue
         );
         require!(
             token_info.whitelisted, 
-            BuffcatErrorCodes::NotWhitelisted
+            TwosideErrorCodes::NotWhitelisted
         );
 
         let clock = Clock::get()?;
@@ -118,7 +118,7 @@ pub mod buffcat {
             require_eq!(
                 token_metadata_acc.key(),
                 token_metadata_address,
-                BuffcatErrorCodes::InvalidTokenMetadataAddress
+                TwosideErrorCodes::InvalidTokenMetadataAddress
             );
 
             let (derivative_metadata_address, _derivative_metadata_bump) = Pubkey::find_program_address(
@@ -133,13 +133,13 @@ pub mod buffcat {
             require_eq!(
                 derivative_metadata_acc.key(),
                 derivative_metadata_address,
-                BuffcatErrorCodes::InvalidDerivativeMetadataAddress
+                TwosideErrorCodes::InvalidDerivativeMetadataAddress
             );
 
             let token_metadata: Metadata = Metadata::safe_deserialize(&token_metadata_acc.data.borrow())
-            .map_err(|_| BuffcatErrorCodes::UninitializedMetadata)?;
+            .map_err(|_| TwosideErrorCodes::UninitializedMetadata)?;
 
-            require_keys_eq!(token_metadata.mint, token_mint.key(), BuffcatErrorCodes::MetadataMintMismatch);
+            require_keys_eq!(token_metadata.mint, token_mint.key(), TwosideErrorCodes::MetadataMintMismatch);
 
             let mut derivative_name = format!("Liquid {}", token_metadata.name.trim_end()); 
             let mut derivative_symbol = format!("li{}", token_metadata.symbol.trim_end());
@@ -202,7 +202,7 @@ pub mod buffcat {
 
         require!(
             derivative_mint.key() == token_info.derivative_mint, 
-            BuffcatErrorCodes::InvalidDerivativeAddress
+            TwosideErrorCodes::InvalidDerivativeAddress
         );
 
         let cpi_accounts = TransferChecked {
@@ -282,15 +282,15 @@ pub mod buffcat {
 
         require!(
             amount != 0, 
-            BuffcatErrorCodes::ZeroAmountValue
+            TwosideErrorCodes::ZeroAmountValue
         );
         require!(
             token_info.whitelisted, 
-            BuffcatErrorCodes::NotWhitelisted
+            TwosideErrorCodes::NotWhitelisted
         );
         require!(
             token_info.derivative_mint != Pubkey::default(),
-            BuffcatErrorCodes::NoDerivativeDeployed
+            TwosideErrorCodes::NoDerivativeDeployed
         );
 
         let fee = calculate_fee(
@@ -377,7 +377,7 @@ pub mod buffcat {
         require!(
             signer.key() == global_info.founder_wallet ||
             signer.key() == global_info.developer_wallet,
-            BuffcatErrorCodes::NotAuthorized
+            TwosideErrorCodes::NotAuthorized
         );
         let authorized_updater  = &mut ctx.accounts.authorized_updater_info;
         authorized_updater.is_initialized = true;
@@ -401,24 +401,24 @@ pub fn calculate_fee(
 
     let numer = amount128
         .checked_mul(fee_percentage128)
-        .ok_or(BuffcatErrorCodes::Overflow)?;
+        .ok_or(TwosideErrorCodes::Overflow)?;
     let half = fee_percentage_divider128
         .checked_div(2)
-        .ok_or(BuffcatErrorCodes::Overflow)?;
+        .ok_or(TwosideErrorCodes::Overflow)?;
     let summed = numer
         .checked_add(half)
-        .ok_or(BuffcatErrorCodes::Overflow)?;
+        .ok_or(TwosideErrorCodes::Overflow)?;
     let rounded = summed / fee_percentage_divider128;
 
     // if rounding produced zero use min_fee, otherwise try to convert to u64 (fail if too big)
     let fee_u64 = if rounded < min_fee_for_distribution128 {
         min_fee
     } else {
-        u64::try_from(rounded).map_err(|_| BuffcatErrorCodes::Overflow)?
+        u64::try_from(rounded).map_err(|_| TwosideErrorCodes::Overflow)?
     };
 
     // final sanity: ensure fee leaves something to lock
-    require!(fee_u64 < amount, BuffcatErrorCodes::AmountInsufficientAfterFee);
+    require!(fee_u64 < amount, TwosideErrorCodes::AmountInsufficientAfterFee);
 
     Ok(fee_u64)
 }
@@ -856,7 +856,7 @@ impl AuthorizedUpdaterInfo {
 
 // Error Codes 
 #[error_code]
-pub enum BuffcatErrorCodes {
+pub enum TwosideErrorCodes {
     #[msg("Account not authorized.")]
     NotAuthorized,
     #[msg("Amount value sent is zero.")]

@@ -2,12 +2,12 @@
 pragma solidity ^0.8.22;
 
 import { Test } from 'forge-std/Test.sol';
-import { BuffcatUpgradeable } from "../src/Buffcat.sol";
+import { TwosideUpgradeable } from "../src/Twoside.sol";
 import { ERC1967Proxy } from "@openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { Token } from "./Token.sol";
 
 contract TestSetUp is Test {
-    BuffcatUpgradeable public buffcat;
+    TwosideUpgradeable public twoside;
     address public owner = address(1906);
     address public developer = address(1907);
     address public founder = address(1908);
@@ -31,14 +31,14 @@ contract TestSetUp is Test {
 
         vm.startPrank(owner);
 
-        buffcat = new BuffcatUpgradeable();
+        twoside = new TwosideUpgradeable();
         bytes memory data = abi.encodeWithSelector(
-            BuffcatUpgradeable.initialize.selector,
+            TwosideUpgradeable.initialize.selector,
             developer,
             founder
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(address(buffcat), data);
-        buffcat = BuffcatUpgradeable(address(proxy));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(twoside), data);
+        twoside = TwosideUpgradeable(address(proxy));
 
         token1 = new Token(address(owner), "Token1", "TKN1");
         token2 = new Token(address(owner), "Token2", "TKN2");
@@ -49,12 +49,12 @@ contract TestSetUp is Test {
 
         address[] memory updaters = new address[](1);
         updaters[0] = owner;
-        buffcat.addAuthorizeUpdaters(updaters);
+        twoside.addAuthorizeUpdaters(updaters);
 
         address[] memory tokenWhitelist = new address[](2);
         tokenWhitelist[0] = address(token1);
         tokenWhitelist[1] = address(token2);
-        buffcat.whitelist(tokenWhitelist);
+        twoside.whitelist(tokenWhitelist);
 
         vm.stopPrank();
     }
