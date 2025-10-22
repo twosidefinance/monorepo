@@ -19,12 +19,11 @@ export default function Dashboard() {
   if (isAllTokensListLoading) return <DashboardSkeleton />;
 
   return (
-    <div className="mx-auto mt-6 mb-12 w-120 min-h-119 rounded-2xl p-4 
-    bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow">
-      <Tabs
-      defaultValue="Lock" 
-      onValueChange={(value) => setActiveTab(value)}
-      >
+    <div
+      className="mx-auto mt-6 mb-12 w-120 min-h-119 rounded-2xl p-4 
+    bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow"
+    >
+      <Tabs defaultValue="Lock" onValueChange={(value) => setActiveTab(value)}>
         <TabsList className="w-full bg-transparent flex justify-between border-b-2 border-gray-200 rounded-none">
           <div>
             <TabsTrigger
