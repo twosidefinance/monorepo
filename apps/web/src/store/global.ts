@@ -4,7 +4,13 @@ import { TokenInfo } from "@uniswap/token-lists";
 import { TokenSelectorAtom, SelectedTokensAtom, Tab } from "../types/state";
 import { atom } from "jotai";
 
-export const currentUserAtom = atom<string>("");
+export const currentUserAtom = atom<{
+  address: string;
+  loggedIn: boolean;
+}>({
+  address: "",
+  loggedIn: false,
+});
 
 export const tokenSelectorAtom = atom<TokenSelectorAtom>({
   isOpen: false,

@@ -25,6 +25,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { UserWallet } from "@/features/wallet/components/UserWallet";
+import { Button } from "./ui/button";
 
 const BlockchainSelector = () => {
   const setBlockchainAtom = useSetAtom(selectedBlockchainAtom);
@@ -64,11 +66,11 @@ const DappButton = () => {
   const pathname = usePathname();
   const router = useRouter();
   return (
-    <ThemedButton
-      style="primary"
-      variant="outline"
+    <Button
       size="lg"
-      className="h-10 px-6 rounded-full flex items-center gap-2"
+      className="bg-black hover:bg-black text-primary-foreground 
+                border-primary border-2 transition-all hover:scale-103
+                font-bold text-lg px-8 cursor-pointer"
       onClick={() => {
         pathname == "/" ? router.push("/dashboard") : router.push("/");
       }}
@@ -77,7 +79,21 @@ const DappButton = () => {
         {pathname == "/" ? "Launch dApp" : "Go Home"}
       </span>
       <ChevronRight />
-    </ThemedButton>
+    </Button>
+    // <ThemedButton
+    //   style="primary"
+    //   variant="outline"
+    //   size="lg"
+    //   className="h-10 px-6 rounded-full flex items-center gap-2"
+    //   onClick={() => {
+    //     pathname == "/" ? router.push("/dashboard") : router.push("/");
+    //   }}
+    // >
+    //   <span className={typography.h4}>
+    //     {pathname == "/" ? "Launch dApp" : "Go Home"}
+    //   </span>
+    //   <ChevronRight />
+    // </ThemedButton>
   );
 };
 
@@ -99,8 +115,9 @@ export const Header: React.FC = () => {
             <span className={typography.h1}>TWOSIDE</span>
           </Link>
         </div>
-        <div className="items-center gap-6 hidden md:flex">
+        <div className="items-center gap-2 hidden md:flex">
           <BlockchainSelector />
+          <UserWallet />
           <DappButton />
         </div>
         <div className="md:hidden block">
@@ -113,6 +130,7 @@ export const Header: React.FC = () => {
                 <SheetTitle className="text-left mb-6">Menu</SheetTitle>
               </SheetHeader>
               <BlockchainSelector />
+              <UserWallet />
               <DappButton />
             </SheetContent>
           </Sheet>
