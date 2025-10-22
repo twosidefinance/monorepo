@@ -62,7 +62,7 @@ export default function UnlockPanel({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-112 rounded-2xl px-4 py-2">
+      <div className="w-full md:w-112 rounded-2xl px-4 py-2">
         <div className="text-xs text-custom-muted-text">You Unlock</div>
         <div className="flex justify-between">
           {!fetchedTokens ? (
@@ -138,7 +138,7 @@ export default function UnlockPanel({
           </div>
         </div>
       </div>
-      <Collapsible className="w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
+      <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
         <CollapsibleTrigger
           onClick={() => {
             setIsCollapsibleOpen((val) => !val);
@@ -236,7 +236,7 @@ export default function UnlockPanel({
         </CollapsibleContent>
       </Collapsible>
       <Card
-        className="w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
+        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
       >
         <CardContent className="px-4">
@@ -247,14 +247,14 @@ export default function UnlockPanel({
               }`}
             </div>
           }
-          <div className="w-104 flex justify-between">
+          <div className="w-full md:w-104 flex justify-between">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>
               <span className="text-custom-muted-text">Auto </span>
               <span>0.5%</span>
             </div>
           </div>
-          <div className="w-104 flex justify-between">
+          <div className="w-full md:w-104 flex justify-between">
             <div className="text-custom-muted-text">Gas Fee</div>
             <div>
               <span>Free</span>
@@ -270,7 +270,7 @@ export default function UnlockPanel({
         style="primary"
         variant="outline"
         size="lg"
-        className="w-112 mt-2"
+        className="w-74 md:w-112 mt-2"
       >
         <CircleCheck /> Approve Tokens
       </ThemedButton>
@@ -278,7 +278,7 @@ export default function UnlockPanel({
         style="secondary"
         variant="outline"
         size="lg"
-        className="w-112 mt-2"
+        className="w-74 md:w-112 mt-2"
       >
         <Unlock /> Unlock Tokens
       </ThemedButton>

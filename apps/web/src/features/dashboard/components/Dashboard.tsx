@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="mx-auto mt-6 mb-12 w-120 min-h-119 rounded-2xl p-4 
+      className="mx-auto mt-6 mb-12 w-full md:w-120 min-h-119 rounded-2xl p-4 
     bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow"
     >
       <Tabs defaultValue="Lock" onValueChange={(value) => setActiveTab(value)}>

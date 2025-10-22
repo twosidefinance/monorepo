@@ -108,7 +108,7 @@ export const Hero = () => {
                 hover:translate-y-1 hover:shadow-none transition-all 
                 font-bold text-lg px-8 cursor-pointer"
               >
-                Launch App
+                Launch dApp
                 <ArrowRight className="ml-2" />
               </Button>
 
