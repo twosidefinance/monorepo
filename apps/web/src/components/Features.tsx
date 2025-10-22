@@ -111,49 +111,6 @@ export const Features = () => {
             </motion.div>
           ))}
         </div>
-
-        {/* Stats section */}
-        <motion.div
-          className="mt-20 grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          {[
-            {
-              label: "Total Value Locked",
-              value: "$50M+",
-              accent: "crypto-blue",
-            },
-            {
-              label: "Memecoins Supported",
-              value: "100+",
-              accent: "deep-blue",
-            },
-            { label: "Active Users", value: "25K+", accent: "accent-red" },
-            { label: "Transactions", value: "500K+", accent: "primary" },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              className={`bg-background border-4 border-primary p-6 neo-shadow text-center hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all`}
-              whileHover={{ scale: 1.05 }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-            >
-              <p
-                className={`text-3xl md:text-4xl font-bold mb-2 text-${stat.accent}`}
-              >
-                {stat.value}
-              </p>
-              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {stat.label}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
     </section>
   );

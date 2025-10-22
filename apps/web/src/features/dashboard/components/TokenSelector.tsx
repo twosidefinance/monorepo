@@ -48,7 +48,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center backdrop-blur-sm bg-custom-secondary-color/30"
+      className="fixed inset-0 z-50 flex justify-center backdrop-blur-sm bg-custom-primary-color/30"
       onClick={onClose}
     >
       <div

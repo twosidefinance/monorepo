@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
             <span className={typography.h1}>TWOSIDE</span>
           </Link>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="items-center gap-6 hidden md:block">
           <Select>
             <SelectTrigger
               className="w-[180px] cursor-pointer shadown-none

@@ -14,9 +14,9 @@
   --color-custom-primary-color: #000000;
   --color-custom-secondary-color: #fdfffc;
 
-  --color-crypto-blue: #00d4ff;
+  /* --color-crypto-blue: #00d4ff;
   --color-crypto-blue-dark: #00b8e6;
-  --color-deep-blue: #0066ff;
+  --color-deep-blue: #0066ff; */
 
   --color-custom-primary-text: #000000;
   --color-custom-secondary-text: #e71d36;
@@ -26,6 +26,24 @@
   --color-custom-card-background: hsl(220, 15%, 12%);
   --color-custom-card-alt: #00d4ff;
   --color-custom-card-border: #000000;
+
+  /* Custom Buffcat colors */
+  --color-crypto-blue: hsl(195, 100%, 50%);
+  --color-crypto-blue-dark: hsl(195, 100%, 45%);
+  --color-deep-blue: hsl(217, 100%, 50%);
+  --color-accent-red: hsl(354, 70%, 50%);
+
+  /* Gradient tokens */
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(195 100% 50%),
+    hsl(217 100% 50%)
+  );
+  --gradient-accent: linear-gradient(
+    90deg,
+    hsl(195 100% 50% / 0.1),
+    hsl(217 100% 50% / 0.1)
+  );
 }
 
 body {
@@ -79,6 +97,11 @@ body {
 }
 
 :root {
+  --crypto-blue: 195 100% 50%;
+  --deep-blue: 217 100% 50%;
+  --crypto-blue-dark: 195 100% 45%;
+  --accent-red: 354 70% 50%;
+
   --radius: 0.625rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -187,57 +210,49 @@ body {
     --ring: 195 100% 50%;
 
     --radius: 0.5rem;
-
-    /* Custom Buffcat colors */
-    --crypto-blue: 195 100% 50%;
-    --crypto-blue-dark: 195 100% 45%;
-    --deep-blue: 217 100% 50%;
-    --accent-red: 354 70% 50%;
-
-    /* Gradient tokens */
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(195 100% 50%),
-      hsl(217 100% 50%)
-    );
-    --gradient-accent: linear-gradient(
-      90deg,
-      hsl(195 100% 50% / 0.1),
-      hsl(217 100% 50% / 0.1)
-    );
   }
 }
 
 /* Custom utility classes */
-@layer utilities {
-  .neo-shadow {
-    box-shadow: 8px 8px 0px hsl(var(--primary));
-  }
+.neo-shadow {
+  box-shadow: 8px 8px 0px #000000;
+}
 
-  .neo-shadow-sm {
-    box-shadow: 4px 4px 0px hsl(var(--primary));
-  }
+.neo-shadow:hover {
+  box-shadow: none;
+}
 
-  .neo-shadow-lg {
-    box-shadow: 12px 12px 0px hsl(var(--primary));
-  }
+.neo-shadow-sm {
+  box-shadow: 4px 4px 0px #000000;
+}
 
-  .neo-shadow-accent {
-    box-shadow: 8px 8px 0px hsl(var(--crypto-blue));
-  }
+.neo-shadow-lg {
+  box-shadow: 12px 12px 0px #000000;
+}
 
-  .gradient-text {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--crypto-blue)),
-      hsl(var(--deep-blue))
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+.neo-shadow-card {
+  box-shadow: 12px 12px 0px #000000;
+}
 
-  .text-balance {
-    text-wrap: balance;
-  }
+.neo-shadow-card:hover {
+  box-shadow: none;
+}
+
+.neo-shadow-accent {
+  box-shadow: 8px 8px 0px hsl(var(--crypto-blue));
+}
+
+.crypto-blue-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--crypto-blue)),
+    hsl(var(--deep-blue))
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-balance {
+  text-wrap: balance;
 }

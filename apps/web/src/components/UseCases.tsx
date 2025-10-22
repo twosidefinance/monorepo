@@ -24,7 +24,7 @@ const useCases = [
     description:
       "Stake bTOKENs in farming pools to earn additional rewards. Multiply your returns while tokens stay locked.",
     benefit: "Stack yields on your holdings",
-    gradient: "from-accent-red to-deep-blue",
+    gradient: "from-red-800 to-deep-blue",
   },
   {
     icon: Wallet,
@@ -66,7 +66,9 @@ export const UseCases = () => {
               transition={{ duration: 0.6, delay: index * 0.15 }}
             >
               <motion.div
-                className="bg-background border-4 border-primary p-8 neo-shadow-lg h-full group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                className="bg-background border-4 border-primary p-8 
+                neo-shadow-card h-full group hover:translate-x-1 
+                hover:translate-y-1 transition-all"
                 whileHover={{ scale: 1.02 }}
               >
                 <div
@@ -92,7 +94,8 @@ export const UseCases = () => {
 
         {/* Call to action box */}
         <motion.div
-          className="mt-16 bg-primary text-primary-foreground border-4 border-primary p-12 neo-shadow-lg text-center"
+          className="mt-16 bg-custom-primary-color text-primary-foreground 
+         p-12 neo-shadow-lg text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -101,26 +104,23 @@ export const UseCases = () => {
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Maximize Your Memecoin Potential?
           </h3>
-          <p className="text-xl mb-8 text-primary-foreground/80 max-w-2xl mx-auto">
+          <p
+            className="text-xl mb-8 text-primary-foreground/80 max-w-2xl 
+          mx-auto"
+          >
             Join thousands of traders already using Buffcat to unlock liquidity
             and earn yields on their holdings.
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center">
             <motion.button
-              className="bg-crypto-blue text-primary font-bold px-8 py-4 text-lg border-2 border-primary neo-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+              className="bg-crypto-blue text-custom-secondary-color font-bold  
+              text-lg border-2 border-primary cursor-pointer px-8 py-4
+              hover:translate-y-1 hover:shadow-none transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Start Trading Now
-            </motion.button>
-
-            <motion.button
-              className="bg-background text-primary font-bold px-8 py-4 text-lg border-2 border-primary neo-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Read Documentation
+              Launch dApp
             </motion.button>
           </div>
         </motion.div>
