@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
 import { injected } from "wagmi/connectors";
@@ -13,8 +13,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LogOut, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { typography } from "@/styles/typography";
-import ThemedButton from "@/components/themed/button";
 
 const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -42,11 +40,20 @@ const WalletContent: React.FC<WalletContentProps> = ({
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
 
   useEffect(() => {
-    if (evmAddress) {
-      setCurrentUser({
-        address: evmAddress,
-        loggedIn: true,
-      });
+    if (blockchain.id == "sol") {
+      if (solanaAddress) {
+        setCurrentUser({
+          address: solanaAddress.toString(),
+          loggedIn: true,
+        });
+      }
+    } else {
+      if (evmAddress) {
+        setCurrentUser({
+          address: evmAddress,
+          loggedIn: true,
+        });
+      }
     }
   }, [evmAddress]);
 
@@ -54,7 +61,7 @@ const WalletContent: React.FC<WalletContentProps> = ({
     toast.error(`No ${blockchain.name} wallet found.`);
   };
 
-  if (blockchain.name === "Solana") {
+  if (blockchain.id == "sol") {
     if (window != undefined && window.solana != undefined) {
       return solanaAddress && currentUser.loggedIn ? (
         <div className="flex items-center space-x-4">
