@@ -84,7 +84,7 @@ export const Hero = () => {
 
             <motion.p
               className="text-lg md:text-xl text-muted-foreground mb-8 
-              lg:mx-0 text-center w-full mx-auto md:px-80"
+              lg:mx-0 text-center w-full mx-auto md:px-40 lg:px-80"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}

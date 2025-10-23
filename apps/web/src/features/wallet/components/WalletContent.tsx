@@ -74,7 +74,7 @@ const WalletContent: React.FC<WalletContentProps> = ({
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-2 mb-2 lg:mb-0">
           <WalletMultiButtonDynamic />
           <WalletDisconnectButton />
         </div>
@@ -82,10 +82,11 @@ const WalletContent: React.FC<WalletContentProps> = ({
     } else {
       return (
         <Button
+          size="lg"
           onClick={() => handleNoWalletConnectAttempt(blockchain)}
-          className="bg-custom-primary-color border-none cursor-pointer p-4 w-42 rounded-lg
-        hover:bg-custom-primary-color hover:text-custom-primary-text hover:border-none 
-        flex items-center"
+          className="bg-black hover:bg-black text-primary-foreground 
+                border-primary border-2 transition-all hover:scale-103
+                font-bold text-lg px-8 cursor-pointer"
         >
           <Wallet className="h-4 w-4" />
           <span>Connect Wallet</span>
@@ -118,8 +119,6 @@ const WalletContent: React.FC<WalletContentProps> = ({
   return (
     <div className="flex items-center">
       <div className="rounded-lg py-2 px-4 flex items-center">
-        {/* <span className="">Welcome, </span>
-        <span className="ml-1">{evmAddress?.toString().slice(0, 6)}...</span> */}
         <Badge
           variant="outline"
           className="flex items-center space-x-1 text-custom-primary-text w-32 p-2 rounded-lg"
@@ -139,16 +138,6 @@ const WalletContent: React.FC<WalletContentProps> = ({
         <LogOut className="h-4 w-4 mr-2" />
         Disconnect
       </Button>
-      {/* <Button
-        onClick={() =>
-          blockchain.name === "Ethereum" ? disconnectEvm() : disconnectSolana()
-        }
-        className="bg-custom-primary-color border-none cursor-pointer p-4 w-42 rounded-lg
-        hover:bg-custom-primary-color hover:text-custom-primary-text hover:border-none"
-      >
-        <LogOut className="h-4 w-4 mr-2" />
-        Disconnect
-      </Button> */}
     </div>
   );
 };

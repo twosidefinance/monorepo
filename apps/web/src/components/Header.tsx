@@ -37,7 +37,7 @@ const BlockchainSelector = () => {
       }}
     >
       <SelectTrigger
-        className="w-[180px] cursor-pointer shadow-none mb-4 md:mb-0
+        className="w-[180px] cursor-pointer shadow-none mb-4 lg:mb-0
                    border border-custom-primary-color rounded-2xl"
       >
         <SelectValue placeholder="Select a blockchain" />
@@ -99,12 +99,12 @@ export const Header: React.FC = () => {
             <span className={typography.h1}>TWOSIDE</span>
           </Link>
         </div>
-        <div className="items-center gap-2 hidden md:flex">
+        <div className="items-center gap-2 hidden lg:flex">
           <BlockchainSelector />
           <UserWallet />
           <DappButton />
         </div>
-        <div className="md:hidden block">
+        <div className="lg:hidden block">
           <Sheet>
             <SheetTrigger>
               <Menu />
@@ -113,9 +113,11 @@ export const Header: React.FC = () => {
               <SheetHeader>
                 <SheetTitle className="text-left mb-6">Menu</SheetTitle>
               </SheetHeader>
-              <BlockchainSelector />
-              <UserWallet />
-              <DappButton />
+              <div className="flex flex-col gap-2">
+                <BlockchainSelector />
+                <UserWallet />
+                <DappButton />
+              </div>
             </SheetContent>
           </Sheet>
         </div>
