@@ -1,7 +1,6 @@
 import React from "react";
 import { typography } from "@/styles/typography";
 import Link from "next/link";
-import ThemedButton from "@/components/themed/button";
 import { ChevronRight, Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -20,7 +19,6 @@ import { useSetAtom } from "jotai";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -29,33 +27,33 @@ import { UserWallet } from "@/features/wallet/components/UserWallet";
 import { Button } from "./ui/button";
 
 const BlockchainSelector = () => {
-  const setBlockchainAtom = useSetAtom(selectedBlockchainAtom);
+  const setBlockchain = useSetAtom(selectedBlockchainAtom);
+
   return (
-    <Select>
+    <Select
+      onValueChange={(val: string) => {
+        const sel = blockchains.find((b) => String(b.id) === val);
+        if (sel) setBlockchain(sel);
+      }}
+    >
       <SelectTrigger
-        className="w-[180px] cursor-pointer shadown-none mb-4 md:mb-0
-                    border border-custom-primary-color rounded-2xl"
+        className="w-[180px] cursor-pointer shadow-none mb-4 md:mb-0
+                   border border-custom-primary-color rounded-2xl"
       >
         <SelectValue placeholder="Select a blockchain" />
       </SelectTrigger>
       <SelectContent className="bg-custom-root-bg">
         <SelectGroup>
           <SelectLabel>Blockchains</SelectLabel>
-          {blockchains.map((b) => {
-            return (
-              <div key={b.id}>
-                <SelectItem
-                  onClick={() => {
-                    setBlockchainAtom(b);
-                  }}
-                  className="cursor-pointer"
-                  value={b.id}
-                >
-                  {b.name}
-                </SelectItem>
-              </div>
-            );
-          })}
+          {blockchains.map((b) => (
+            <SelectItem
+              key={b.id}
+              value={String(b.id)}
+              className="cursor-pointer"
+            >
+              {b.name}
+            </SelectItem>
+          ))}
         </SelectGroup>
       </SelectContent>
     </Select>
@@ -80,20 +78,6 @@ const DappButton = () => {
       </span>
       <ChevronRight />
     </Button>
-    // <ThemedButton
-    //   style="primary"
-    //   variant="outline"
-    //   size="lg"
-    //   className="h-10 px-6 rounded-full flex items-center gap-2"
-    //   onClick={() => {
-    //     pathname == "/" ? router.push("/dashboard") : router.push("/");
-    //   }}
-    // >
-    //   <span className={typography.h4}>
-    //     {pathname == "/" ? "Launch dApp" : "Go Home"}
-    //   </span>
-    //   <ChevronRight />
-    // </ThemedButton>
   );
 };
 
