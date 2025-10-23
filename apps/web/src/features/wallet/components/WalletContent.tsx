@@ -48,7 +48,7 @@ const WalletContent: React.FC<WalletContentProps> = ({
         });
       }
     } else {
-      if (evmAddress) {
+      if (evmAddress && isEvmConnected) {
         setCurrentUser({
           address: evmAddress,
           loggedIn: true,
@@ -66,10 +66,14 @@ const WalletContent: React.FC<WalletContentProps> = ({
       return solanaAddress && currentUser.loggedIn ? (
         <div className="flex items-center space-x-4">
           <div className="rounded-lg py-2 px-4 flex items-center">
-            <span className="">Welcome, </span>
-            <span className="ml-1">
-              {solanaAddress.toString().slice(0, 6)}...
-            </span>
+            <div className="rounded-lg py-2 px-4 flex items-center">
+              <Badge
+                variant="outline"
+                className="flex items-center space-x-1 text-custom-primary-text w-32 p-2 rounded-lg"
+              >
+                <span>{formatWalletAddress(solanaAddress.toString())}</span>
+              </Badge>
+            </div>
             <WalletDisconnectButton />
           </div>
         </div>
