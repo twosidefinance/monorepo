@@ -66,18 +66,18 @@ export default function LockPanel({
     return selectedTokens.lockToken || defaultToken;
   }, [selectedTokens.lockToken, defaultToken]);
 
-  // const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  // const currentUser = useAtomValue(currentUserAtom);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const currentUser = useAtomValue(currentUserAtom);
 
-  // const {
-  //   data: tokenBalanceData,
-  //   isLoading: isTokenBalanceLoading,
-  //   error: tokenBalanceError,
-  // } = useTokenBalance({
-  //   chain: selectedBlockchain,
-  //   tokenAddressOrMint: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431",
-  //   userAddress: currentUser,
-  // });
+  const {
+    data: tokenBalanceData,
+    isLoading: isTokenBalanceLoading,
+    error: tokenBalanceError,
+  } = useTokenBalance({
+    chain: selectedBlockchain,
+    tokenAddressOrMint: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431",
+    userAddress: currentUser.address,
+  });
 
   return (
     <div className="flex flex-col items-center">
@@ -152,18 +152,20 @@ export default function LockPanel({
           }
 
           <div className="text-sm text-custom-muted-text">
-            {/* {isTokenBalanceLoading
+            {isTokenBalanceLoading
               ? "Loading..."
               : tokenBalanceError
                 ? "Not Found"
-                : "Lockable: " +
-                  tokenBalanceData?.balance +
-                  " " +
-                  (displayToken
-                    ? displayToken.symbol
-                    : placeholders.tokenSymbol)} */}
-            {"Lockable: 1.237 " +
-              (displayToken ? displayToken.symbol : placeholders.tokenSymbol)}
+                : tokenBalanceData?.balance
+                  ? "Lockable: " +
+                    tokenBalanceData?.balance +
+                    " " +
+                    (displayToken
+                      ? displayToken.symbol
+                      : placeholders.tokenSymbol)
+                  : "Lockable: Not Found"}
+            {/* {"Lockable: 1.237 " +
+              (displayToken ? displayToken.symbol : placeholders.tokenSymbol)} */}
           </div>
         </div>
       </div>

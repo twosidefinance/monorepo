@@ -324,6 +324,7 @@ body {
 .wallet-adapter-modal-wrapper {
   background-color: var(--color-custom-secondary-color) !important;
   color: var(--color-custom-root-text) !important;
+  box-shadow: 4px 4px 0px #000000 !important;
 }
 
 .wallet-adapter-modal-wrapper .wallet-adapter-button {
