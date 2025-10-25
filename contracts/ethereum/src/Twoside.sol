@@ -38,6 +38,7 @@ contract TwosideUpgradeable is
 
     mapping(address => bool) public whitelistedTokens;
     mapping(address => address) public tokenDerivatives;
+    mapping(address => address) public tokenOfDerivative;
 
     // Modifiers :-
     modifier onlyAuthorizedUpdater() {
@@ -95,6 +96,7 @@ contract TwosideUpgradeable is
             IToken(derivativeAddress).initialize(address(this), derivativeName, derivativeSymbol, decimals);
             emit DerivativeContractDeployed(_token, derivativeAddress, block.timestamp);
             tokenDerivatives[_token] = derivativeAddress;
+            tokenOfDerivative[derivativeAddress] = _token;
         }
 
         IToken(_token).safeTransferFrom(msg.sender, address(this), _amount);

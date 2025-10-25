@@ -39,7 +39,9 @@ import {
 } from "@/components/ui/tooltip";
 import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/abis/erc20.json";
+import twosideAbi from "../lib/abis/twoside.json";
 import { envVariables } from "@/lib/envVariables";
+import { useTokenDerivative } from "../hooks/query/contract";
 
 interface LockPanelProps {
   blockchain: Blockchain;
@@ -93,7 +95,7 @@ export default function LockPanel({
     error: tokenBalanceError,
   } = useTokenBalance({
     chain: selectedBlockchain,
-    tokenAddressOrMint: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431",
+    tokenAddressOrMint: selectedTokens.lockToken?.address ?? "",
     userAddress: currentUser.address,
   });
 
@@ -104,20 +106,25 @@ export default function LockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
+    const tokenAddress = selectedTokens.lockToken?.address;
+    if (!tokenAddress) {
+      toast.error("Select a token and try again.");
+      return;
+    }
     if (amount == 0 || amount < 0) {
       toast.error("Invalid Amount Input");
       return;
     }
     const decimals = selectedTokens.lockToken?.decimals;
     let approvalAmount = amount;
-    if (useRawValues) {
+    if (!useRawValues) {
       if (!decimals) {
         toast.error(
           "Token decimals not found, toggle to use raw values instead."
         );
         return;
       }
-      approvalAmount = amount * decimals;
+      approvalAmount = amount * 10 ** decimals;
     }
     const twosideContract =
       selectedBlockchain.id == "eth"
@@ -129,12 +136,6 @@ export default function LockPanel({
       );
       return;
     }
-    // const tokenAddress = selectedTokens.lockToken?.address;
-    // if (!tokenAddress) {
-    //   toast.error("Select a token and try again.");
-    //   return;
-    // }
-    const tokenAddress = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
@@ -158,9 +159,51 @@ export default function LockPanel({
   };
 
   const handleLockTokens = async () => {
+    if (!currentUser.loggedIn) {
+      toast.error("Connect a wallet first.");
+      return;
+    }
+    const tokenAddress = selectedTokens.lockToken?.address;
+    if (!tokenAddress) {
+      toast.error("Select a token and try again.");
+      return;
+    }
+    if (amount == 0 || amount < 0) {
+      toast.error("Invalid Amount Input");
+      return;
+    }
+    const decimals = selectedTokens.lockToken?.decimals;
+    let approvalAmount = amount;
+    if (!useRawValues) {
+      if (!decimals) {
+        toast.error(
+          "Token decimals not found, toggle to use raw values instead."
+        );
+        return;
+      }
+      approvalAmount = amount * decimals;
+    }
+    const twosideContract =
+      selectedBlockchain.id == "eth"
+        ? envVariables.twosideContract.eth
+        : envVariables.twosideContract.base;
+    if (twosideContract == "") {
+      toast.error(
+        `${selectedBlockchain.name} Twoside contract address not set.`
+      );
+      return;
+    }
     await withConfirmation(
       async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10_000));
+        const sig = await writeContractAsync({
+          address: twosideContract as `0x${string}`,
+          abi: twosideAbi.abi,
+          functionName: "lock",
+          args: [tokenAddress, amount],
+        });
+        toast.success("Signature", {
+          description: `${sig}`,
+        });
       },
       {
         title: "Lock Tokens?",
@@ -362,8 +405,8 @@ export default function LockPanel({
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
                     {displayToken
-                      ? "b" + displayToken.symbol
-                      : "b" + placeholders.tokenSymbol}
+                      ? "li" + displayToken.symbol
+                      : "li" + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -372,11 +415,11 @@ export default function LockPanel({
           <div className="text-muted-foreground text-sm px-6 pb-4">
             Lock your{" "}
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol} and
-            receive b
+            receive li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens that represent your locked position. Use b
+            tokens that represent your locked position. Use li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your b
+            other DeFi protocols while earning rewards. Burn your li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
             tokens to unlock your original{" "}
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}. No
@@ -391,7 +434,7 @@ export default function LockPanel({
         <CardContent className="px-4">
           {
             <div>
-              {`1 ${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 b${
+              {`1 ${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 li${
                 displayToken ? displayToken.symbol : placeholders.tokenSymbol
               }`}
             </div>

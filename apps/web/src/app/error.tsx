@@ -22,12 +22,13 @@ export default function Error({
     <div className="flex items-center justify-center h-screen">
       <div className="flex flex-col">
         <div className={typography.h1}>
-          <span className="text-custom-secondary-text">Something</span>
+          <span className="text-crypto-blue">Something</span>
           <span> went wrong!</span>
         </div>
         <div className="flex flex-row gap-4 mt-4">
           <ThemedButton
             size="lg"
+            style="primary"
             variant="default"
             onClick={() => router.push("/")}
           >
@@ -35,6 +36,7 @@ export default function Error({
           </ThemedButton>
           <ThemedButton
             size="lg"
+            style="primary"
             variant="default"
             onClick={() => () => reset()}
           >

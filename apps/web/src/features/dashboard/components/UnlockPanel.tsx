@@ -40,6 +40,8 @@ import { toast } from "sonner";
 import { envVariables } from "@/lib/envVariables";
 import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/abis/erc20.json";
+import twosideAbi from "../lib/abis/twoside.json";
+import { useTokenDerivative } from "../hooks/query/contract";
 
 interface UnlockPanelProps {
   blockchain: Blockchain;
@@ -88,12 +90,21 @@ export default function UnlockPanel({
   const currentUser = useAtomValue(currentUserAtom);
 
   const {
+    data: tokenDerivativeData,
+    isLoading: isTokenDerivativeLoading,
+    error: tokenDerivativeError,
+  } = useTokenDerivative({
+    chain: selectedBlockchain,
+    tokenAddressOrMint: selectedTokens.lockToken?.address ?? "",
+  });
+
+  const {
     data: tokenBalanceData,
     isLoading: isTokenBalanceLoading,
     error: tokenBalanceError,
   } = useTokenBalance({
     chain: selectedBlockchain,
-    tokenAddressOrMint: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431",
+    tokenAddressOrMint: tokenDerivativeData ?? "",
     userAddress: currentUser.address,
   });
 
@@ -104,13 +115,18 @@ export default function UnlockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
+    const tokenAddress = selectedTokens.lockToken?.address;
+    if (!tokenAddress) {
+      toast.error("Select a token and try again.");
+      return;
+    }
     if (amount == 0 || amount < 0) {
       toast.error("Invalid Amount Input");
       return;
     }
     const decimals = selectedTokens.lockToken?.decimals;
     let approvalAmount = amount;
-    if (useRawValues) {
+    if (!useRawValues) {
       if (!decimals) {
         toast.error(
           "Token decimals not found, toggle to use raw values instead."
@@ -129,16 +145,15 @@ export default function UnlockPanel({
       );
       return;
     }
-    // const tokenAddress = selectedTokens.lockToken?.address;
-    // if (!tokenAddress) {
-    //   toast.error("Select a token and try again.");
-    //   return;
-    // }
-    const tokenAddress = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
+    const derivativeAddress = tokenDerivativeData;
+    if (!derivativeAddress) {
+      toast.error("Derivative address not found, try again.");
+      return;
+    }
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: tokenAddress as `0x${string}`,
+          address: derivativeAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: "approve",
           args: [twosideContract, amount],
@@ -158,9 +173,56 @@ export default function UnlockPanel({
   };
 
   const handleUnlockTokens = async () => {
+    if (!currentUser.loggedIn) {
+      toast.error("Connect a wallet first.");
+      return;
+    }
+    const tokenAddress = selectedTokens.lockToken?.address;
+    if (!tokenAddress) {
+      toast.error("Select a token and try again.");
+      return;
+    }
+    if (amount == 0 || amount < 0) {
+      toast.error("Invalid Amount Input");
+      return;
+    }
+    const decimals = selectedTokens.lockToken?.decimals;
+    let approvalAmount = amount;
+    if (!useRawValues) {
+      if (!decimals) {
+        toast.error(
+          "Token decimals not found, toggle to use raw values instead."
+        );
+        return;
+      }
+      approvalAmount = amount * 10 ** decimals;
+    }
+    const twosideContract =
+      selectedBlockchain.id == "eth"
+        ? envVariables.twosideContract.eth
+        : envVariables.twosideContract.base;
+    if (twosideContract == "") {
+      toast.error(
+        `${selectedBlockchain.name} Twoside contract address not set.`
+      );
+      return;
+    }
+    const derivativeAddress = tokenDerivativeData;
+    if (!derivativeAddress) {
+      toast.error("Derivative address not found, try again.");
+      return;
+    }
     await withConfirmation(
       async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10_000));
+        const sig = await writeContractAsync({
+          address: twosideContract as `0x${string}`,
+          abi: twosideAbi.abi,
+          functionName: "unlock",
+          args: [derivativeAddress, amount],
+        });
+        toast.success("Signature", {
+          description: `${sig}`,
+        });
       },
       {
         title: "Unlock Tokens?",
@@ -272,7 +334,7 @@ export default function UnlockPanel({
           }
 
           <div className="text-sm text-custom-muted-text">
-            {isTokenBalanceLoading
+            {isTokenDerivativeLoading || isTokenBalanceLoading
               ? "Loading..."
               : tokenBalanceError
                 ? "Not Found"
@@ -330,8 +392,8 @@ export default function UnlockPanel({
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
                     {displayToken
-                      ? "b" + displayToken.symbol
-                      : "b" + placeholders.tokenSymbol}
+                      ? "li" + displayToken.symbol
+                      : "li" + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -372,11 +434,11 @@ export default function UnlockPanel({
           <div className="text-muted-foreground text-sm px-6 pb-4">
             Lock your{" "}
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol} and
-            receive b
+            receive li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens that represent your locked position. Use b
+            tokens that represent your locked position. Use li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your b
+            other DeFi protocols while earning rewards. Burn your li
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
             tokens to unlock your original{" "}
             {displayToken ? displayToken.symbol : placeholders.tokenSymbol}. No
@@ -391,7 +453,7 @@ export default function UnlockPanel({
         <CardContent className="px-4">
           {
             <div>
-              {`1 b${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 ${
+              {`1 li${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 ${
                 displayToken ? displayToken.symbol : placeholders.tokenSymbol
               }`}
             </div>

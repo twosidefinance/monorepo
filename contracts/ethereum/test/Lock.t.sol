@@ -25,6 +25,9 @@ contract LockTests is TestSetUp {
         balance = IERC20(derivative).balanceOf(user);
         assertEq(balance, lockedAmount, "Wrong Balance");
 
+        address tokenOfDerivative = twoside.tokenOfDerivative(derivative);
+        assertEq(tokenOfDerivative, address(token1), "Wrong token of derivative");
+
         vm.stopPrank();
     }
 
