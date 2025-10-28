@@ -224,7 +224,9 @@ export default function LockPanel({
           const signer = new PublicKey(currentUser.address);
           const signerTokenAta = await setup.getTokenATA(tokenMint, signer);
           const founderWallet = wallets?.founder;
+          const founderAta = await setup.getTokenATA(tokenMint, founderWallet);
           const developerWallet = wallets?.developer;
+          const developerAta = await setup.getTokenATA(tokenMint, developerWallet);
           if (!developerWallet || !founderWallet) {
             toast.error("Error getting crucial accounts, reload & try again.");
             return;
@@ -236,8 +238,8 @@ export default function LockPanel({
               tokenMetadata: tokenMetadata.pda,
               signer: signer,
               signerTokenAta: signerTokenAta,
-              developerAta: wallets?.developer,
-              founderAta: wallets?.founder,
+              developerAta: developerAta,
+              founderAta: founderAta,
               mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
             })
             .rpc();

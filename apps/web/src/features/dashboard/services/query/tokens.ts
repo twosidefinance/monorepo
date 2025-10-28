@@ -47,9 +47,9 @@ export async function getBaseTokensList() {
   }
 }
 
-export const solanaTokensList: TokenInfo[] = {
+export const solanaTokensList: TokenList[] = [{
   chainId: 103, // Solana mainnet-beta (use 103 for devnet, 102 for testnet)
-  address: "731wQ2M1Z6B3T2gVYTNdhTWqzGPbVLQBzYYQGcDo7etk",
+  address: "HMCtny2coMmYL8uHSD14eR7cJyEcWNgJWMa65r1svmV2",
   name: "My Token",
   symbol: "MT",
   decimals: 9,
@@ -63,7 +63,7 @@ export const solanaTokensList: TokenInfo[] = {
       uri: "https://domain.com/example.json",
     },
   },
-};
+}];
 
 export async function getSolanaTokensList() {
   const url =
