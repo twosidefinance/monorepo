@@ -22,7 +22,7 @@ use mpl_token_metadata::{
     types::{DataV2}
 };
 
-declare_id!("AmsGvKEwUpj6ykJQFwYC9sLBwNuedcDx68ohkstW1ca6");
+declare_id!("8Z48mrWoffcR3FoqAbcgE7fgRXBYV4zqLD5cMCD44d7f");
 
 #[program]
 pub mod twoside {

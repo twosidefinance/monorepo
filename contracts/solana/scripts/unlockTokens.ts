@@ -34,18 +34,16 @@ import { PublicKey } from "@solana/web3.js";
         new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID)
       );
 
-    console.log("Locking Tokens :-");
-    const lockAmount = 10 * 10 ** tokenDecimals;
+    console.log("Unlocking Tokens :-");
+    const lockAmount = 9 * 10 ** tokenDecimals;
     const sig = await program.methods
-      .lock(new anchor.BN(lockAmount))
+      .unlock(new anchor.BN(lockAmount))
       .accounts({
         tokenMint: tokenMint,
-        tokenMetadata: tokenMetadataPDA,
         signer: user.publicKey,
         signerTokenAta: userAta,
         developerAta: developerAta,
         founderAta: founderAta,
-        mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
       })
       .signers([user])
       .rpc();
