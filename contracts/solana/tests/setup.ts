@@ -34,9 +34,6 @@ class Setup {
     Buffer.from("token_info");
   public VAULT_AUTHORITY_STATIC_SEED: Buffer<ArrayBuffer> =
     Buffer.from("vault_authority");
-  public AUTHORIZED_UPDATER_INFO_STATIC_SEED: Buffer<ArrayBuffer> = Buffer.from(
-    "authorized_updater_info"
-  );
   public METADATA_STATIC_SEED: Buffer<ArrayBuffer> = Buffer.from("metadata");
   public DERIVATIVE_AUTHORITY_STATIC_SEED: Buffer<ArrayBuffer> = Buffer.from(
     "derivative_authority"
@@ -246,22 +243,6 @@ class Setup {
       authorityBump: vaultAuthorityBump,
       ata: vaultAta,
       ataBump: vaultAtaBump,
-    };
-  }
-
-  public getAuthorizedUpdater(owner: anchor.web3.PublicKey): {
-    pda: anchor.web3.PublicKey;
-    bump: number;
-  } {
-    const [authorizedUpdaterPDA, authorizedUpdaterBump] =
-      anchor.web3.PublicKey.findProgramAddressSync(
-        [this.AUTHORIZED_UPDATER_INFO_STATIC_SEED, owner.toBuffer()],
-        this.program.programId
-      );
-
-    return {
-      pda: authorizedUpdaterPDA,
-      bump: authorizedUpdaterBump,
     };
   }
 

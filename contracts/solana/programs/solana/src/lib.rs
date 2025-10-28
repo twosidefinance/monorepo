@@ -42,6 +42,7 @@ pub mod twoside {
             TwosideErrorCodes::InvalidPubkey
         );
         let global_info = &mut ctx.accounts.global_info;
+        require!(!global_info.is_initialized, TwosideErrorCodes::ProgramInitialized);
         global_info.is_initialized = true;
         global_info.developer_wallet = developer_wallet;
         global_info.founder_wallet = founder_wallet;
@@ -89,10 +90,6 @@ pub mod twoside {
             amount != 0, 
             TwosideErrorCodes::ZeroAmountValue
         );
-        require!(
-            token_info.whitelisted, 
-            TwosideErrorCodes::NotWhitelisted
-        );
 
         let clock = Clock::get()?;
         let current_timestamp = clock.unix_timestamp;
@@ -106,6 +103,9 @@ pub mod twoside {
         let derivative_authority_slice: &[&[&[u8]]] = &[derivative_authority_seeds];
 
         if token_info.derivative_mint == Pubkey::default() {
+            token_info.is_initialized = true;
+            token_info.original_mint = token_mint.key();
+
             let (token_metadata_address, _token_metadata_bump) = Pubkey::find_program_address(
                 &[
                     METADATA_STATIC_SEED,
@@ -193,6 +193,7 @@ pub mod twoside {
             ).invoke_signed(full_signer_seeds)?;
 
             token_info.derivative_mint = derivative_mint.key();
+            
             emit!(DerivativeTokenMinted {
                 token: token_mint.key(),
                 derivative: derivative_mint.key(),
@@ -285,10 +286,6 @@ pub mod twoside {
             TwosideErrorCodes::ZeroAmountValue
         );
         require!(
-            token_info.whitelisted, 
-            TwosideErrorCodes::NotWhitelisted
-        );
-        require!(
             token_info.derivative_mint != Pubkey::default(),
             TwosideErrorCodes::NoDerivativeDeployed
         );
@@ -355,34 +352,6 @@ pub mod twoside {
             timestamp: current_timestamp
         });
 
-        Ok(())
-    }
-
-    pub fn whitelist(ctx: Context<Whitelist>) -> Result<()> {
-        let token_mint = &ctx.accounts.token_mint;
-        let token_info = &mut ctx.accounts.token_info;
-        token_info.is_initialized = true;
-        token_info.original_mint = token_mint.key();
-        token_info.whitelisted = true;
-        token_info.vault_authority_bump = ctx.bumps.vault_authority;
-        Ok(())
-    }
-
-    pub fn add_authorized_updater(
-        ctx: Context<AddAuthorizedUpdater>,
-        updater: Pubkey
-    ) -> Result<()> {
-        let signer = &ctx.accounts.signer;
-        let global_info = &ctx.accounts.global_info;
-        require!(
-            signer.key() == global_info.founder_wallet ||
-            signer.key() == global_info.developer_wallet,
-            TwosideErrorCodes::NotAuthorized
-        );
-        let authorized_updater  = &mut ctx.accounts.authorized_updater_info;
-        authorized_updater.is_initialized = true;
-        authorized_updater.key = updater;
-        authorized_updater.active = true;
         Ok(())
     }
 }
@@ -579,14 +548,14 @@ pub struct Lock<'info> {
     pub signer_derivative_ata: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut, 
+        init_if_needed,
         seeds = [
             TOKEN_INFO_STATIC_SEED, 
             token_mint.key().as_ref()
         ], 
         bump,
-        constraint = token_info.original_mint == token_mint.key() 
-        && token_info.is_initialized
+        payer = signer,
+        space = 8 + TokenInfo::LEN,
     )]
     pub token_info: Box<Account<'info, TokenInfo>>,
 
@@ -727,90 +696,11 @@ pub struct Unlock<'info> {
     pub developer_ata: Account<'info, TokenAccount>,
 }
 
-#[derive(Accounts)]
-#[instruction(updater: Pubkey)]
-pub struct AddAuthorizedUpdater<'info> {
-    pub system_program: Program<'info, System>,
-
-    #[account(mut)]
-    pub signer: Signer<'info>,
-
-    #[account(
-        init,
-        seeds = [
-            AUTHORIZED_UPDATER_INFO_STATIC_SEED,
-            updater.as_ref()
-        ], 
-        bump,
-        payer = signer,
-        space = 8 + AuthorizedUpdaterInfo::LEN,
-    )]
-    pub authorized_updater_info: Account<'info, AuthorizedUpdaterInfo>,
-
-    #[account( 
-        seeds = [GLOBAL_INFO_STATIC_SEED], 
-        bump,
-        constraint = global_info.is_initialized 
-        @ ProgramError::UninitializedAccount
-    )]
-    pub global_info: Account<'info, GlobalInfo>,
-}
-
-#[derive(Accounts)]
-pub struct Whitelist<'info> {
-    pub system_program: Program<'info, System>,
-
-    #[account(
-        constraint = token_mint.is_initialized
-        @ ProgramError::UninitializedAccount
-    )]
-    pub token_mint: Account<'info, Mint>,
-
-    #[account(
-        mut, 
-        seeds = [
-            AUTHORIZED_UPDATER_INFO_STATIC_SEED, 
-            signer.key().as_ref()
-        ], 
-        bump,
-        constraint = authorized_updater_info.active
-        && authorized_updater_info.is_initialized
-        && authorized_updater_info.key == signer.key()
-    )]
-    pub authorized_updater_info: Account<'info, AuthorizedUpdaterInfo>,
-    #[account(mut)]
-    pub signer: Signer<'info>,
-
-    #[account(
-        init,
-        seeds = [
-            TOKEN_INFO_STATIC_SEED, 
-            token_mint.key().as_ref()
-        ], 
-        bump,
-        payer = signer,
-        space = 8 + TokenInfo::LEN,
-    )]
-    pub token_info: Account<'info, TokenInfo>,
-
-    #[account(
-        seeds = [
-            VAULT_AUTHORITY_STATIC_SEED, 
-            token_mint.key().as_ref()
-        ],
-        bump
-    )]
-    /// CHECK: Token Vault's Authority.
-    pub vault_authority: UncheckedAccount<'info>,
-}
-
 pub const GLOBAL_INFO_STATIC_SEED: &[u8] = b"global_info";
 pub const TOKEN_INFO_STATIC_SEED: &[u8] = b"token_info";
 pub const VAULT_AUTHORITY_STATIC_SEED: &[u8] = b"vault_authority";
-pub const AUTHORIZED_UPDATER_INFO_STATIC_SEED: &[u8] = b"authorized_updater_info";
 pub const METADATA_STATIC_SEED: &[u8] = b"metadata";
 pub const DERIVATIVE_AUTHORITY_SEED: &[u8] = b"derivative_authority";
-pub const DERIVATIVE_METADATA_AUTHORITY_STATIC_SEED: &[u8] = b"derivative_metadata_authority";
 pub const DERIVATIVE_MINT_STATIC_SEED: &[u8] = b"derivative_mint";
 
 #[account]
@@ -834,51 +724,30 @@ impl GlobalInfo {
 pub struct TokenInfo {
     pub is_initialized: bool, // 1
     pub original_mint: Pubkey, // 32
-    pub whitelisted: bool, // 1
     pub derivative_mint: Pubkey, // 32
-    pub vault_authority_bump: u8, // 8 / 8 = 1
 }
 
 impl TokenInfo {
-    pub const LEN: usize = 1 + 32 + 1 + 32 + 1;
-}
-
-#[account]
-pub struct AuthorizedUpdaterInfo {
-    pub is_initialized: bool, // 1
-    pub key: Pubkey, // 32
-    pub active: bool, // 1
-}
-
-impl AuthorizedUpdaterInfo {
-    pub const LEN: usize = 1 + 32 + 1;
+    pub const LEN: usize = 1 + 32 + 32;
 }
 
 // Error Codes 
 #[error_code]
 pub enum TwosideErrorCodes {
-    #[msg("Account not authorized.")]
-    NotAuthorized,
+    #[msg("Program already initialized.")]
+    ProgramInitialized,
     #[msg("Amount value sent is zero.")]
     ZeroAmountValue,
     #[msg("Provided pubkey cannot be default / zero")]
     InvalidPubkey,
-    #[msg("Amount value < Minimum amount.")]
-    InvalidAmount,
     #[msg("Derivative not minted.")]
     NoDerivativeDeployed,
     #[msg("Derivative sent is not for this token.")]
     InvalidDerivativeAddress,
-    #[msg("Token not whitelisted.")]
-    NotWhitelisted,
-    #[msg("Now owned by official program")]
-    InvalidMetadataProgram,
     #[msg("Not metaplex metadata.")]
     UninitializedMetadata,
     #[msg("Metadata is not of token submitted.")]
     MetadataMintMismatch,
-    #[msg("ATA submitted is invalid")]
-    InvalidATA,
     #[msg("Invalid program sent as metaplex program")]
     InvalidMetaplexProgram,
     #[msg("Invalid derivative metadata address")]
@@ -905,12 +774,6 @@ pub struct FounderFeeShareDistributed {
     pub founder_wallet: Pubkey,
     pub token: Pubkey,
     pub amount: u64,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct TokenWhitelisted {
-    pub token: Pubkey,
     pub timestamp: i64,
 }
 

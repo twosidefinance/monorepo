@@ -99,60 +99,6 @@ describe("Token Locking", () => {
         "Wrong User Token Balance"
       );
 
-      await setup.program.methods
-        .addAuthorizedUpdater(setup.user.publicKey)
-        .accounts({
-          signer: setup.founder.publicKey,
-        })
-        .signers([setup.founder])
-        .rpc();
-
-      const { pda: authorizedUpdaterPDA, bump: authorizedUpdaterBump } =
-        setup.getAuthorizedUpdater(setup.user.publicKey);
-
-      const authorizedUpdaterInfo =
-        await setup.program.account.authorizedUpdaterInfo.fetch(
-          authorizedUpdaterPDA
-        );
-
-      assert(
-        authorizedUpdaterInfo.active == true,
-        "Authorized Updater Not Active"
-      );
-      assert(
-        authorizedUpdaterInfo.key.toString() == setup.user.publicKey.toString(),
-        "Wrong Authorized Updater Key Set"
-      );
-
-      await setup.program.methods
-        .whitelist()
-        .accounts({
-          tokenMint: tokenMint,
-          signer: setup.user.publicKey,
-        })
-        .signers([setup.user])
-        .rpc();
-
-      const { pda: tokenInfoPDA, bump: tokenInfoBump } =
-        setup.getTokenInfoPDA(tokenMint);
-
-      const tokenInfo =
-        await setup.program.account.tokenInfo.fetch(tokenInfoPDA);
-
-      assert(
-        tokenInfo.originalMint.toString() == tokenMint.toString(),
-        "Wrong Token Mint Set"
-      );
-      assert(
-        tokenInfo.derivativeMint.toString() == PublicKey.default.toString(),
-        "Wrong Derivative Mint Set"
-      );
-      assert(tokenInfo.whitelisted == true, "Token Not Whitelisted");
-      assert(
-        tokenInfo.vaultAuthorityBump == vaultAuthorityBump,
-        "Wrong Vault Authority Bump Set"
-      );
-
       const { pda: derivativeAuthorityPDA, bump: derivativeAuthorityBump } =
         setup.getDerivativeAuthority(tokenMint);
 
@@ -169,6 +115,22 @@ describe("Token Locking", () => {
         })
         .signers([setup.user])
         .rpc();
+
+      const { pda: tokenInfoPDA, bump: tokenInfoBump } =
+        setup.getTokenInfoPDA(tokenMint);
+
+      const tokenInfo =
+        await setup.program.account.tokenInfo.fetch(tokenInfoPDA);
+
+      assert(tokenInfo.isInitialized, "Token Info Not Initialized");
+      assert(
+        tokenInfo.originalMint.toString() == tokenMint.toString(),
+        "Wrong Token Mint Set"
+      );
+      assert(
+        tokenInfo.derivativeMint.toString() == derivativeMint.toString(),
+        "Wrong Derivative Mint Set"
+      );
 
       const derivativeMintAccount = await splToken.getMint(
         setup.connection,
