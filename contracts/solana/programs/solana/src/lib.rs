@@ -22,7 +22,7 @@ use mpl_token_metadata::{
     types::{DataV2}
 };
 
-declare_id!("Dua4QHV8oHr8Mxna9jngcTgACVVpitrAdDK4xVHufjCG");
+declare_id!("AmsGvKEwUpj6ykJQFwYC9sLBwNuedcDx68ohkstW1ca6");
 
 #[program]
 pub mod twoside {
@@ -569,14 +569,14 @@ pub struct Lock<'info> {
         token::mint = token_mint,
         token::authority = signer,
     )]
-    pub signer_token_ata: Account<'info, TokenAccount>,
+    pub signer_token_ata: Box<Account<'info, TokenAccount>>,
     #[account(
         init_if_needed,
         payer = signer,
         associated_token::mint = derivative_mint,
         associated_token::authority = signer,
     )]
-    pub signer_derivative_ata: Account<'info, TokenAccount>,
+    pub signer_derivative_ata: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut, 
@@ -605,7 +605,7 @@ pub struct Lock<'info> {
         associated_token::mint = token_mint,
         associated_token::authority = vault_authority,
     )]
-    pub vault_ata: Account<'info, TokenAccount>,
+    pub vault_ata: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -621,13 +621,13 @@ pub struct Lock<'info> {
         token::mint = token_mint,
         constraint = founder_ata.owner == global_info.founder_wallet
     )]
-    pub founder_ata: Account<'info, TokenAccount>,
+    pub founder_ata: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         token::mint = token_mint,
         constraint = developer_ata.owner == global_info.developer_wallet
     )]
-    pub developer_ata: Account<'info, TokenAccount>,
+    pub developer_ata: Box<Account<'info, TokenAccount>>,
 }
 
 #[derive(Accounts)]

@@ -3,6 +3,7 @@ import { Blockchain, Language } from "../types/global";
 import { TokenInfo } from "@uniswap/token-lists";
 import { TokenSelectorAtom, SelectedTokensAtom, Tab } from "../types/state";
 import { atom } from "jotai";
+import { SupportedBlockchain } from "@/types/global";
 
 export const currentUserAtom = atom<{
   address: string;
@@ -19,8 +20,16 @@ export const tokenSelectorAtom = atom<TokenSelectorAtom>({
 });
 
 export const selectedTokensAtom = atom<SelectedTokensAtom>({
-  lockToken: null,
-  unlockToken: null,
+  lockToken: {
+    eth: null,
+    base: null,
+    sol: null,
+  },
+  unlockToken: {
+    eth: null,
+    base: null,
+    sol: null,
+  },
 });
 
 export const currentTabAtom = atom<Tab>("lock");

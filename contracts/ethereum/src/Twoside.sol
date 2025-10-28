@@ -29,23 +29,14 @@ contract TwosideUpgradeable is
     address public founder;
     uint256 public developerShare;
     uint256 public founderShare;
-    mapping(address => bool) public authorizedUpdaters;
 
     uint256 public feePercentage;
     uint256 public feePercentageDivider;
     uint256 public minFeeForDistribution;
     uint256 public minFee;
 
-    mapping(address => bool) public whitelistedTokens;
     mapping(address => address) public tokenDerivatives;
     mapping(address => address) public tokenOfDerivative;
-
-    // Modifiers :-
-    modifier onlyAuthorizedUpdater() {
-        if (!authorizedUpdaters[msg.sender])
-            revert NotAuthorized();
-        _;
-    }
 
     // Functions :-
 
@@ -76,7 +67,6 @@ contract TwosideUpgradeable is
     function lock(address _token, uint256 _amount) external nonReentrant whenNotPaused {
         if (_token == address(0)) revert ZeroAddress();
         if (_amount == 0) revert ZeroAmountValue();
-        if (!whitelistedTokens[_token]) revert NotWhitelisted();
 
         uint256 allowance = IToken(_token).allowance(msg.sender, address(this));
         if (allowance < _amount) revert InsufficientAllowance();
@@ -113,7 +103,6 @@ contract TwosideUpgradeable is
     function unlock(address _token, uint256 _amount) external nonReentrant whenNotPaused {
         if (_token == address(0)) revert ZeroAddress();
         if (_amount == 0) revert ZeroAmountValue();
-        if (!whitelistedTokens[_token]) revert NotWhitelisted();
 
         address derivativeAddress = tokenDerivatives[_token];
         if (derivativeAddress == address(0)) revert NoDerivativeDeployed();
@@ -161,26 +150,6 @@ contract TwosideUpgradeable is
         if (fee < minFeeForDistribution) fee = minFee;
         if (fee >= _amount) revert AmountInsufficientAfterFee();
         return fee;
-    }
-
-    // Private -
-    function addAuthorizeUpdaters(address[] calldata _accounts) external onlyOwner {
-        for (uint256 i = 0; i < _accounts.length; i++) {
-            address account = _accounts[i];
-            if (account == address(0)) revert ZeroAddress();
-            authorizedUpdaters[account] = true;
-        }
-    }
-
-    function whitelist(
-        address[] calldata _tokens
-    ) external onlyAuthorizedUpdater {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            address token = _tokens[i];
-            if (token == address(0)) revert ZeroAddress();
-            whitelistedTokens[token] = true;
-            emit TokenWhitelisted(token, block.timestamp);
-        }
     }
 
     function pause() public onlyOwner {

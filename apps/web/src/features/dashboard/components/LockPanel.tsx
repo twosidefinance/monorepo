@@ -38,10 +38,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useWriteContract } from "wagmi";
-import erc20Abi from "../lib/abis/erc20.json";
-import twosideAbi from "../lib/abis/twoside.json";
+import erc20Abi from "../lib/evm/erc20.json";
+import twosideAbi from "../lib/evm/twoside.json";
 import { envVariables } from "@/lib/envVariables";
-import { useTokenDerivative } from "../hooks/query/contract";
+import * as anchor from "@coral-xyz/anchor";
+import {
+  useAnchorProgram,
+  useAnchorProgramWallets,
+} from "../hooks/anchorProgram";
+import { PublicKey } from "@solana/web3.js";
+import { setup } from "../lib/sol/setup";
+import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 interface LockPanelProps {
   blockchain: Blockchain;
@@ -55,12 +62,17 @@ export default function LockPanel({
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const [useRawValues, setUseRawValues] = useState<boolean>(false);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(
-    useRawValues && selectedTokens.lockToken?.decimals
-      ? 1 * 10 ** selectedTokens.lockToken?.decimals
+    useRawValues && selectedTokens.lockToken[selectedBlockchain.id]?.decimals
+      ? 1 *
+          10 ** (selectedTokens.lockToken[selectedBlockchain.id]?.decimals ?? 0)
       : 1.0
   );
   const { writeContractAsync } = useWriteContract();
+  const program = useAnchorProgram();
+  const wallets = useAnchorProgramWallets();
 
   const defaultToken = useMemo(() => {
     return fetchedTokens && fetchedTokens.length > 1 ? fetchedTokens[1] : null;
@@ -78,16 +90,19 @@ export default function LockPanel({
   };
 
   const handleSelectToken = (token: TokenInfo) => {
-    setSelectedTokens((prev) => ({ ...prev, lockToken: token }));
+    setSelectedTokens((prev) => ({
+      ...prev,
+      lockToken: {
+        ...prev.lockToken,
+        [selectedBlockchain.id]: token,
+      },
+    }));
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
   const displayToken = useMemo(() => {
-    return selectedTokens.lockToken || defaultToken;
+    return selectedTokens.lockToken[selectedBlockchain.id] || defaultToken;
   }, [selectedTokens.lockToken, defaultToken]);
-
-  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  const currentUser = useAtomValue(currentUserAtom);
 
   const {
     data: tokenBalanceData,
@@ -95,7 +110,8 @@ export default function LockPanel({
     error: tokenBalanceError,
   } = useTokenBalance({
     chain: selectedBlockchain,
-    tokenAddressOrMint: selectedTokens.lockToken?.address ?? "",
+    tokenAddressOrMint:
+      selectedTokens.lockToken[selectedBlockchain.id]?.address ?? "",
     userAddress: currentUser.address,
   });
 
@@ -106,7 +122,8 @@ export default function LockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
-    const tokenAddress = selectedTokens.lockToken?.address;
+    const tokenAddress =
+      selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
       return;
@@ -115,7 +132,7 @@ export default function LockPanel({
       toast.error("Invalid Amount Input");
       return;
     }
-    const decimals = selectedTokens.lockToken?.decimals;
+    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = amount;
     if (!useRawValues) {
       if (!decimals) {
@@ -142,7 +159,7 @@ export default function LockPanel({
           address: tokenAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: "approve",
-          args: [twosideContract, amount],
+          args: [twosideContract, approvalAmount],
         });
         toast.success("Signature", {
           description: `${sig}`,
@@ -150,7 +167,7 @@ export default function LockPanel({
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${amount} ${selectedTokens.lockToken?.name.toString()}?`,
+        description: `Do you want to approve ${approvalAmount} ${selectedTokens.lockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -163,7 +180,8 @@ export default function LockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
-    const tokenAddress = selectedTokens.lockToken?.address;
+    const tokenAddress =
+      selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
       return;
@@ -172,8 +190,8 @@ export default function LockPanel({
       toast.error("Invalid Amount Input");
       return;
     }
-    const decimals = selectedTokens.lockToken?.decimals;
-    let approvalAmount = amount;
+    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
+    let lockAmount = amount;
     if (!useRawValues) {
       if (!decimals) {
         toast.error(
@@ -181,7 +199,7 @@ export default function LockPanel({
         );
         return;
       }
-      approvalAmount = amount * decimals;
+      lockAmount = amount * decimals;
     }
     const twosideContract =
       selectedBlockchain.id == "eth"
@@ -195,19 +213,49 @@ export default function LockPanel({
     }
     await withConfirmation(
       async () => {
-        const sig = await writeContractAsync({
-          address: twosideContract as `0x${string}`,
-          abi: twosideAbi.abi,
-          functionName: "lock",
-          args: [tokenAddress, amount],
-        });
+        let sig;
+        if (selectedBlockchain.id == "sol") {
+          if (!program) {
+            toast.error("Solana program not set, try again or reload.");
+            return;
+          }
+          const tokenMint = new PublicKey(tokenAddress);
+          const tokenMetadata = setup.getTokenMetadataPDA(tokenMint);
+          const signer = new PublicKey(currentUser.address);
+          const signerTokenAta = await setup.getTokenATA(tokenMint, signer);
+          const founderWallet = wallets?.founder;
+          const developerWallet = wallets?.developer;
+          if (!developerWallet || !founderWallet) {
+            toast.error("Error getting crucial accounts, reload & try again.");
+            return;
+          }
+          sig = await program.methods
+            .lock(new anchor.BN(lockAmount))
+            .accounts({
+              tokenMint: tokenMint,
+              tokenMetadata: tokenMetadata.pda,
+              signer: signer,
+              signerTokenAta: signerTokenAta,
+              developerAta: wallets?.developer,
+              founderAta: wallets?.founder,
+              mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+            })
+            .rpc();
+        } else {
+          sig = await writeContractAsync({
+            address: twosideContract as `0x${string}`,
+            abi: twosideAbi.abi,
+            functionName: "lock",
+            args: [tokenAddress, lockAmount],
+          });
+        }
         toast.success("Signature", {
           description: `${sig}`,
         });
       },
       {
         title: "Lock Tokens?",
-        description: `Do you want to lock ${amount} ${selectedTokens.lockToken?.name.toString()}?`,
+        description: `Do you want to lock ${lockAmount} ${selectedTokens.lockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been locked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,

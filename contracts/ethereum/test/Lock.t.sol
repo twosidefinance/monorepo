@@ -55,18 +55,6 @@ contract LockTests is TestSetUp {
         vm.stopPrank();
     }
 
-    function testLockingBlacklistedToken() public {
-        vm.startPrank(user);
-
-        token3.approve(address(twoside), initialBalance);
-
-        uint256 lockAmount = 10e18;
-        vm.expectRevert(ITwoside.NotWhitelisted.selector);
-        twoside.lock(address(token3), lockAmount);
-
-        vm.stopPrank();
-    }
-
     function testEventsEmits() public {
         vm.startPrank(user);
 

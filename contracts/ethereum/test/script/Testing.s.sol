@@ -63,12 +63,6 @@ contract DeployTwosideUpgradeableOnTestnet is Script {
 
 
             if (i == 1) {
-                address[] memory authorizedUpdaters = new address[](1);
-                authorizedUpdaters[0] = address(userPublicKey);
-                twoside.addAuthorizeUpdaters(authorizedUpdaters);
-                address[] memory tokenWhitelist = new address[](1);
-                tokenWhitelist[0] = address(token);
-                twoside.whitelist(tokenWhitelist);
                 uint256 lockAmount = 10 * 10 ** 18;
                 IToken(token).approve(address(twoside), lockAmount);
                 twoside.lock(token, lockAmount);

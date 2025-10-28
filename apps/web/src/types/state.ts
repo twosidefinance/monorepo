@@ -1,4 +1,5 @@
 import { TokenInfo } from "@uniswap/token-lists";
+import { SupportedBlockchain } from "./global";
 
 export type TokenSelectorAtom = {
   isOpen: boolean;
@@ -7,8 +8,12 @@ export type TokenSelectorAtom = {
 };
 
 export type SelectedTokensAtom = {
-  lockToken: TokenInfo | null;
-  unlockToken: TokenInfo | null;
+  lockToken: {
+    [key in SupportedBlockchain]: TokenInfo | null;
+  };
+  unlockToken: {
+    [key in SupportedBlockchain]: TokenInfo | null;
+  };
 };
 
 export type Tab = "lock" | "unlock";

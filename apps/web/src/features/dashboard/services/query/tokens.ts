@@ -47,6 +47,24 @@ export async function getBaseTokensList() {
   }
 }
 
+export const solanaTokensList: TokenInfo[] = {
+  chainId: 103, // Solana mainnet-beta (use 103 for devnet, 102 for testnet)
+  address: "731wQ2M1Z6B3T2gVYTNdhTWqzGPbVLQBzYYQGcDo7etk",
+  name: "My Token",
+  symbol: "MT",
+  decimals: 9,
+  logoURI: "https://domain.com/example.json",
+  tags: ["metaplex", "spl-token"],
+  extensions: {
+    metadata: {
+      metaplex: {
+        metadataAccount: "DSX6i4R3Ksj3xi1Xhzn2RCRPbRm1p5jgSgkf1T3qdCfd",
+      },
+      uri: "https://domain.com/example.json",
+    },
+  },
+};
+
 export async function getSolanaTokensList() {
   const url =
     "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/tokenlist.json";

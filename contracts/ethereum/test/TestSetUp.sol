@@ -47,15 +47,6 @@ contract TestSetUp is Test {
         token2.mint(user, initialBalance);
         token3.mint(user, initialBalance);
 
-        address[] memory updaters = new address[](1);
-        updaters[0] = owner;
-        twoside.addAuthorizeUpdaters(updaters);
-
-        address[] memory tokenWhitelist = new address[](2);
-        tokenWhitelist[0] = address(token1);
-        tokenWhitelist[1] = address(token2);
-        twoside.whitelist(tokenWhitelist);
-
         vm.stopPrank();
     }
 

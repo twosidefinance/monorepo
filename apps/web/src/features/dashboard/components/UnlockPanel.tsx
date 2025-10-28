@@ -39,9 +39,17 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { envVariables } from "@/lib/envVariables";
 import { useWriteContract } from "wagmi";
-import erc20Abi from "../lib/abis/erc20.json";
-import twosideAbi from "../lib/abis/twoside.json";
+import erc20Abi from "../lib/evm/erc20.json";
+import twosideAbi from "../lib/evm/twoside.json";
 import { useTokenDerivative } from "../hooks/query/contract";
+import {
+  useAnchorProgram,
+  useAnchorProgramWallets,
+} from "../hooks/anchorProgram";
+import { PublicKey } from "@solana/web3.js";
+import { setup } from "../lib/sol/setup";
+import * as anchor from "@coral-xyz/anchor";
+import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 interface UnlockPanelProps {
   blockchain: Blockchain;
@@ -55,12 +63,18 @@ export default function UnlockPanel({
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const [useRawValues, setUseRawValues] = useState<boolean>(false);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(
-    useRawValues && selectedTokens.lockToken?.decimals
-      ? 1 * 10 ** selectedTokens.lockToken?.decimals
+    useRawValues && selectedTokens.unlockToken[selectedBlockchain.id]?.decimals
+      ? 1 *
+          10 **
+            (selectedTokens.unlockToken[selectedBlockchain.id]?.decimals ?? 0)
       : 1.0
   );
   const { writeContractAsync } = useWriteContract();
+  const program = useAnchorProgram();
+  const wallets = useAnchorProgramWallets();
 
   const defaultToken = useMemo(() => {
     return fetchedTokens && fetchedTokens.length > 1 ? fetchedTokens[1] : null;
@@ -78,16 +92,19 @@ export default function UnlockPanel({
   };
 
   const handleSelectToken = (token: TokenInfo) => {
-    setSelectedTokens((prev) => ({ ...prev, unlockToken: token }));
+    setSelectedTokens((prev) => ({
+      ...prev,
+      unlockToken: {
+        ...prev.unlockToken,
+        [selectedBlockchain.id]: token,
+      },
+    }));
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
   const displayToken = useMemo(() => {
-    return selectedTokens.unlockToken || defaultToken;
+    return selectedTokens.unlockToken[selectedBlockchain.id] || defaultToken;
   }, [selectedTokens.unlockToken, defaultToken]);
-
-  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  const currentUser = useAtomValue(currentUserAtom);
 
   const {
     data: tokenDerivativeData,
@@ -95,7 +112,8 @@ export default function UnlockPanel({
     error: tokenDerivativeError,
   } = useTokenDerivative({
     chain: selectedBlockchain,
-    tokenAddressOrMint: selectedTokens.lockToken?.address ?? "",
+    tokenAddressOrMint:
+      selectedTokens.lockToken[selectedBlockchain.id]?.address ?? "",
   });
 
   const {
@@ -115,7 +133,8 @@ export default function UnlockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
-    const tokenAddress = selectedTokens.lockToken?.address;
+    const tokenAddress =
+      selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
       return;
@@ -124,7 +143,7 @@ export default function UnlockPanel({
       toast.error("Invalid Amount Input");
       return;
     }
-    const decimals = selectedTokens.lockToken?.decimals;
+    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = amount;
     if (!useRawValues) {
       if (!decimals) {
@@ -156,7 +175,7 @@ export default function UnlockPanel({
           address: derivativeAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: "approve",
-          args: [twosideContract, amount],
+          args: [twosideContract, approvalAmount],
         });
         toast.success("Signature", {
           description: `${sig}`,
@@ -164,7 +183,7 @@ export default function UnlockPanel({
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${amount} ${selectedTokens.lockToken?.name.toString()}?`,
+        description: `Do you want to approve ${approvalAmount} ${selectedTokens.lockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -177,7 +196,8 @@ export default function UnlockPanel({
       toast.error("Connect a wallet first.");
       return;
     }
-    const tokenAddress = selectedTokens.lockToken?.address;
+    const tokenAddress =
+      selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
       return;
@@ -186,8 +206,8 @@ export default function UnlockPanel({
       toast.error("Invalid Amount Input");
       return;
     }
-    const decimals = selectedTokens.lockToken?.decimals;
-    let approvalAmount = amount;
+    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
+    let unlockAmount = amount;
     if (!useRawValues) {
       if (!decimals) {
         toast.error(
@@ -195,7 +215,7 @@ export default function UnlockPanel({
         );
         return;
       }
-      approvalAmount = amount * 10 ** decimals;
+      unlockAmount = amount * 10 ** decimals;
     }
     const twosideContract =
       selectedBlockchain.id == "eth"
@@ -214,19 +234,49 @@ export default function UnlockPanel({
     }
     await withConfirmation(
       async () => {
-        const sig = await writeContractAsync({
-          address: twosideContract as `0x${string}`,
-          abi: twosideAbi.abi,
-          functionName: "unlock",
-          args: [derivativeAddress, amount],
-        });
-        toast.success("Signature", {
-          description: `${sig}`,
-        });
+        let sig;
+        if (selectedBlockchain.id == "sol") {
+          if (!program) {
+            toast.error("Solana program not set, try again or reload.");
+            return;
+          }
+          const tokenMint = new PublicKey(tokenAddress);
+          const tokenMetadata = setup.getTokenMetadataPDA(tokenMint);
+          const signer = new PublicKey(currentUser.address);
+          const signerTokenAta = await setup.getTokenATA(tokenMint, signer);
+          const founderWallet = wallets?.founder;
+          const developerWallet = wallets?.developer;
+          if (!developerWallet || !founderWallet) {
+            toast.error("Error getting crucial accounts, reload & try again.");
+            return;
+          }
+          sig = await program.methods
+            .lock(new anchor.BN(unlockAmount))
+            .accounts({
+              tokenMint: tokenMint,
+              tokenMetadata: tokenMetadata.pda,
+              signer: signer,
+              signerTokenAta: signerTokenAta,
+              developerAta: wallets?.developer,
+              founderAta: wallets?.founder,
+              mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+            })
+            .rpc();
+        } else {
+          const sig = await writeContractAsync({
+            address: twosideContract as `0x${string}`,
+            abi: twosideAbi.abi,
+            functionName: "unlock",
+            args: [derivativeAddress, unlockAmount],
+          });
+          toast.success("Signature", {
+            description: `${sig}`,
+          });
+        }
       },
       {
         title: "Unlock Tokens?",
-        description: `Do you want to unlock ${amount} ${selectedTokens.lockToken?.name.toString()}?`,
+        description: `Do you want to unlock ${unlockAmount} ${selectedTokens.lockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been unlocked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,

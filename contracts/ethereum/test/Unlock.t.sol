@@ -92,21 +92,6 @@ contract UnlockTests is TestSetUp {
         vm.stopPrank();
     }
 
-    function testUnlockingBlacklistedToken() public {
-        vm.startPrank(user);
-
-        uint256 lockAmount = 10e18;
-        vm.expectRevert(ITwoside.NotWhitelisted.selector);
-        twoside.lock(address(token3), lockAmount);
-
-        uint256 unlockAmount = 1e18;
-
-        vm.expectRevert(ITwoside.NotWhitelisted.selector);
-        twoside.unlock(address(token3), unlockAmount);
-
-        vm.stopPrank();
-    }
-
     function testEventsEmits() public {
         vm.startPrank(user);
 
