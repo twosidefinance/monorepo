@@ -49,30 +49,19 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import { setup } from "../lib/sol/setup";
 import * as anchor from "@coral-xyz/anchor";
-import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
-interface UnlockPanelProps {
-  blockchain: Blockchain;
-  fetchedTokens: TokenInfo[] | undefined;
-}
-
-export default function UnlockPanel({
-  blockchain,
-  fetchedTokens,
-}: UnlockPanelProps) {
+export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
-  const [useRawValues, setUseRawValues] = useState<boolean>(false);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(1);
   const { writeContractAsync } = useWriteContract();
   const program = useAnchorProgram();
   const wallets = useAnchorProgramWallets();
-
-  const defaultToken = useMemo(() => {
-    return fetchedTokens && fetchedTokens.length > 1 ? fetchedTokens[1] : null;
-  }, [fetchedTokens]);
+  const unlockToken = useMemo(() => {
+    return selectedTokens.unlockToken[selectedBlockchain.id];
+  }, [selectedTokens.unlockToken[selectedBlockchain.id]]);
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
@@ -95,10 +84,6 @@ export default function UnlockPanel({
     }));
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
-
-  const displayToken = useMemo(() => {
-    return selectedTokens.unlockToken[selectedBlockchain.id] || defaultToken;
-  }, [selectedTokens.unlockToken, defaultToken]);
 
   const {
     data: tokenDerivativeData,
@@ -140,15 +125,13 @@ export default function UnlockPanel({
     const decimals =
       selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = amount;
-    if (!useRawValues) {
-      if (!decimals) {
-        toast.error(
-          "Token decimals not found, toggle to use raw values instead."
-        );
-        return;
-      }
-      approvalAmount = amount * decimals;
+    if (!decimals) {
+      toast.error(
+        "Token decimals not found, toggle to use raw values instead."
+      );
+      return;
     }
+    approvalAmount = amount * decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -178,7 +161,8 @@ export default function UnlockPanel({
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${approvalAmount} ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
+        description: `Do you want to approve ${amount} 
+        ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -204,15 +188,13 @@ export default function UnlockPanel({
     const decimals =
       selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
     let unlockAmount = amount;
-    if (!useRawValues) {
-      if (!decimals) {
-        toast.error(
-          "Token decimals not found, toggle to use raw values instead."
-        );
-        return;
-      }
-      unlockAmount = amount * 10 ** decimals;
+    if (!decimals) {
+      toast.error(
+        "Token decimals not found, toggle to use raw values instead."
+      );
+      return;
     }
+    unlockAmount = amount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -281,7 +263,8 @@ export default function UnlockPanel({
       },
       {
         title: "Unlock Tokens?",
-        description: `Do you want to unlock ${unlockAmount} ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
+        description: `Do you want to unlock ${amount} 
+        ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been unlocked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -292,77 +275,62 @@ export default function UnlockPanel({
   return (
     <div className="flex flex-col items-center">
       <div className="w-full md:w-112 rounded-2xl px-4 py-2">
+        <div className="text-xs text-custom-muted-text">You Unlock</div>
         <div className="flex justify-between">
-          <div className="text-xs text-custom-muted-text">You Unlock</div>
-          <div className="flex items-center space-x-2">
-            <Tooltip>
-              <TooltipTrigger>
-                {" "}
-                <Label htmlFor="use-raw-values" className="text-xs">
-                  Use Raw Values
-                </Label>
-              </TooltipTrigger>
-              <TooltipContent className="w-60">
-                <p>
-                  Value you enter will interpreted as raw values. 10 would
-                  interpreted as 10 tokens but now it would be interpreted as as
-                  a raw value like 0.00...10.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-            <Switch
-              className="shadow-none"
-              id="use-raw-values"
-              checked={useRawValues}
-              onCheckedChange={(checked) => setUseRawValues(checked)}
-            />
-          </div>
-        </div>
-        <div className="flex justify-between">
-          {!fetchedTokens ? (
-            <div className="w-36 h-12 me-6 mb-2 text-3xl font-bold text-left flex items-center">
-              {placeholders.text}
-            </div>
-          ) : (
-            <Button
-              onClick={handletokenSelectorTrigger}
-              variant="ghost"
-              className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
-            >
-              <span>
-                <ImageWithFallback
-                  height={38}
-                  width={38}
-                  src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
-                      : placeholders.tokenImage
-                  }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
-                />
-              </span>
+          <Button
+            onClick={handletokenSelectorTrigger}
+            variant="ghost"
+            className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
+          >
+            {unlockToken ? (
+              <>
+                <span>
+                  <ImageWithFallback
+                    height={38}
+                    width={38}
+                    src={
+                      unlockToken.logoURI
+                        ? unlockToken.logoURI
+                        : placeholders.tokenImage
+                    }
+                    alt={
+                      unlockToken ? unlockToken.name : placeholders.tokenName
+                    }
+                    fallbackSrc={placeholders.tokenImage}
+                    // Add key to force re-render when token changes
+                    key={unlockToken?.address || "placeholder"}
+                  />
+                </span>
+                <span className="flex flex-col items-start">
+                  <span className="flex flex-row">
+                    <span className="text-xl font-bold text-left text-custom-primary-text">
+                      {unlockToken
+                        ? unlockToken.symbol
+                        : placeholders.tokenSymbol}
+                    </span>
+                    <span className="flex items-center">
+                      <ChevronRight className="text-custom-primary-text" />
+                    </span>
+                  </span>
+                  <span className="text-sm text-custom-muted-text">
+                    on {selectedBlockchain.name}
+                  </span>
+                </span>
+              </>
+            ) : (
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-xl font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? displayToken.symbol
-                      : placeholders.tokenSymbol}
+                    Select
                   </span>
                   <span className="flex items-center">
                     <ChevronRight className="text-custom-primary-text" />
                   </span>
                 </span>
-                <span className="text-sm text-custom-muted-text">
-                  on {blockchain.name}
-                </span>
+                <span className="text-sm text-custom-muted-text">A Token</span>
               </span>
-            </Button>
-          )}
+            )}
+          </Button>
           <div>
             <Input
               type="number"
@@ -384,7 +352,7 @@ export default function UnlockPanel({
         <div className="flex justify-between">
           {
             <div className="text-sm text-custom-muted-text">
-              {displayToken ? displayToken.name : placeholders.tokenName}
+              {unlockToken ? unlockToken.name : "N/A"}
             </div>
           }
 
@@ -397,8 +365,8 @@ export default function UnlockPanel({
                   ? "Unlockable: " +
                     tokenBalanceData?.balance +
                     " " +
-                    (displayToken
-                      ? displayToken.symbol
+                    (unlockToken
+                      ? unlockToken.symbol
                       : placeholders.tokenSymbol)
                   : "Unlockable: Not Found"}
           </div>
@@ -431,23 +399,21 @@ export default function UnlockPanel({
                   height={48}
                   width={48}
                   src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
+                    unlockToken?.logoURI
+                      ? unlockToken.logoURI
                       : placeholders.tokenImage
                   }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
+                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
+                  key={unlockToken?.address || "placeholder"}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? "li" + displayToken.symbol
+                    {unlockToken
+                      ? "li" + unlockToken.symbol
                       : "li" + placeholders.tokenSymbol}
                   </span>
                 </span>
@@ -463,23 +429,21 @@ export default function UnlockPanel({
                   height={48}
                   width={48}
                   src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
+                    unlockToken?.logoURI
+                      ? unlockToken.logoURI
                       : placeholders.tokenImage
                   }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
+                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
+                  key={unlockToken?.address || "placeholder"}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? displayToken.symbol
+                    {unlockToken
+                      ? unlockToken.symbol
                       : placeholders.tokenSymbol}
                   </span>
                 </span>
@@ -488,16 +452,13 @@ export default function UnlockPanel({
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
             Lock your{" "}
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol} and
-            receive li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens that represent your locked position. Use li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens to unlock your original{" "}
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}. No
-            lock-up period required.
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any
+            token and receive li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid
+            locked tokens that represent your locked position. Use li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in
+            other DeFi protocols while earning rewards. Burn your liquid locked
+            tokens to unlock your original tokens. No lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -508,26 +469,16 @@ export default function UnlockPanel({
         <CardContent className="px-4">
           {
             <div>
-              {`1 li${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 ${
-                displayToken ? displayToken.symbol : placeholders.tokenSymbol
-              }`}
+              {unlockToken
+                ? `1 li${unlockToken.symbol} = 1 ${unlockToken.symbol}`
+                : "1 Liquid Locked Token = 1 Original Token"}
             </div>
           }
-          <div className="w-full md:w-104 flex justify-between">
+          <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>
               <span className="text-custom-muted-text">Auto </span>
               <span>0.5%</span>
-            </div>
-          </div>
-          <div className="w-full md:w-104 flex justify-between">
-            <div className="text-custom-muted-text">Gas Fee</div>
-            <div>
-              <span>Free</span>
-              <span className="text-custom-muted-text line-through">
-                {" "}
-                $0.75
-              </span>
             </div>
           </div>
         </CardContent>
@@ -547,7 +498,7 @@ export default function UnlockPanel({
         style="secondary"
         variant="outline"
         size="lg"
-        className="w-74 md:w-112 mt-2"
+        className={`w-74 md:w-112 ${selectedBlockchain.id == "sol" ? "mt-12" : "mt-2"}`}
         onClick={handleUnlockTokens}
       >
         <Unlock /> Unlock Tokens

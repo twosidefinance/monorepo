@@ -20,16 +20,14 @@ export function CustomLayout({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
-        toast.error("Something went wrong!", {
-          description: `More Details: ${error.message}`,
-        });
+        console.log("Something went wrong!");
+        console.log(`More Details: ${error.message}`);
       },
     }),
     mutationCache: new MutationCache({
       onError: (error) => {
-        toast.error("Something went wrong!", {
-          description: `More Details: ${error.message}`,
-        });
+        console.log("Something went wrong!");
+        console.log(`More Details: ${error.message}`);
       },
     }),
   });

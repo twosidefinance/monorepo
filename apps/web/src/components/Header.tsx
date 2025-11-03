@@ -61,34 +61,10 @@ const BlockchainSelector = () => {
   );
 };
 
-const DappButton = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-  return (
-    <Button
-      size="lg"
-      className="bg-black hover:bg-black text-primary-foreground 
-                border-primary border-2 transition-all hover:scale-103
-                font-bold text-lg px-8 cursor-pointer"
-      onClick={() => {
-        pathname == "/" ? router.push("/dashboard") : router.push("/");
-      }}
-    >
-      <span className={typography.h4}>
-        {pathname == "/" ? "Launch dApp" : "Go Home"}
-      </span>
-      <ChevronRight />
-    </Button>
-  );
-};
-
 export const Header: React.FC = () => {
   return (
     <>
-      <div
-        className="h-22 min-w-full border-[1px] border-gray-800 px-12 
-            flex items-center justify-between bg-custom-root-bg"
-      >
+      <div className="h-22 min-w-full px-12 flex items-center justify-between">
         <div className="flex items-center">
           <Image
             src="/twoside-bold.png"
@@ -103,7 +79,6 @@ export const Header: React.FC = () => {
         <div className="items-center gap-2 hidden lg:flex">
           <BlockchainSelector />
           <UserWallet />
-          <DappButton />
         </div>
         <div className="lg:hidden block">
           <Sheet>
@@ -117,7 +92,6 @@ export const Header: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <BlockchainSelector />
                 <UserWallet />
-                <DappButton />
               </div>
             </SheetContent>
           </Sheet>

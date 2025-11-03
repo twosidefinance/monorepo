@@ -7,7 +7,7 @@ const steps = [
     number: "01",
     title: "Lock Your Tokens",
     description:
-      "Deposit any memecoin into Buffcat's smart contracts. Your tokens are secured in a transparent, auditable vault.",
+      "Lock any token into Twoside's smart contracts. Your tokens are secured in a transparent, auditable vault.",
     color: "crypto-blue",
   },
   {
@@ -15,7 +15,7 @@ const steps = [
     number: "02",
     title: "Mint Derivatives",
     description:
-      "Receive bTOKENs at a 1:1 ratio. These derivatives represent your locked tokens and can be freely traded.",
+      "Receive liTOKENs at a 1:1 ratio. These derivatives represent your locked tokens and can be freely traded.",
     color: "deep-blue",
   },
   {
@@ -23,14 +23,14 @@ const steps = [
     number: "03",
     title: "Use or Redeem",
     description:
-      "Trade bTOKENs in liquidity pools, farm rewards, or redeem them for your original tokens anytime at 1:1.",
+      "Trade liTOKENs in liquidity pools, farm rewards, or redeem them for your original tokens anytime at 1:1.",
     color: "accent-red",
   },
 ];
 
 export const HowItWorks = () => {
   return (
-    <section className="py-24 px-4 bg-muted/30 relative overflow-hidden">
+    <section className="py-24 px-4 relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--crypto-blue)/0.05),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,hsl(var(--deep-blue)/0.05),transparent_50%)]" />
@@ -44,7 +44,7 @@ export const HowItWorks = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            How Buffcat <span className="gradient-text">Works</span>
+            How Twoside <span className="gradient-text">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Three simple steps to unlock liquidity from your memecoins
@@ -75,12 +75,14 @@ export const HowItWorks = () => {
               )}
 
               <motion.div
-                className="bg-background border-4 border-primary p-8 neo-shadow relative h-full hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                className="bg-background rounded-2xl border-4 border-primary p-8 neo-shadow relative h-full 
+                hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                 whileHover={{ scale: 1.02 }}
               >
                 {/* Step number badge */}
                 <div
-                  className={`absolute -top-4 -right-4 w-12 h-12 bg-${step.color} border-2 border-primary flex items-center justify-center font-bold text-lg neo-shadow-sm`}
+                  className={`absolute -top-4 -right-4 w-12 h-12 bg-${step.color} border-2 border-primary 
+                  flex items-center justify-center font-bold text-lg neo-shadow-sm rounded-full`}
                 >
                   {step.number}
                 </div>
@@ -102,7 +104,7 @@ export const HowItWorks = () => {
 
         {/* Visual flow diagram */}
         <motion.div
-          className="mt-16 bg-background border-4 border-primary p-8 neo-shadow-lg"
+          className="mt-16 bg-background rounded-4xl border-4 border-primary p-8 neo-shadow-lg"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -111,7 +113,7 @@ export const HowItWorks = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             <div className="flex-1">
               <p className="text-sm font-bold mb-2">EXCHANGE RATE</p>
-              <p className="text-3xl font-bold">1 TOKEN = 1 bTOKEN</p>
+              <p className="text-3xl font-bold">1 TOKEN = 1 liTOKEN</p>
             </div>
 
             <ArrowRight className="w-8 h-8 text-crypto-blue rotate-90 md:rotate-0" />

@@ -30,13 +30,6 @@ import ThemedButton from "@/components/themed/button";
 import { useTokenBalance } from "../hooks/query/tokens";
 import { toast } from "sonner";
 import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/evm/erc20.json";
 import twosideAbi from "../lib/evm/twoside.json";
@@ -50,28 +43,18 @@ import { PublicKey } from "@solana/web3.js";
 import { setup } from "../lib/sol/setup";
 import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
-interface LockPanelProps {
-  blockchain: Blockchain;
-  fetchedTokens: TokenInfo[] | undefined;
-}
-
-export default function LockPanel({
-  blockchain,
-  fetchedTokens,
-}: LockPanelProps) {
+export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
-  const [useRawValues, setUseRawValues] = useState<boolean>(false);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(1);
   const { writeContractAsync } = useWriteContract();
   const program = useAnchorProgram();
   const wallets = useAnchorProgramWallets();
-
-  const defaultToken = useMemo(() => {
-    return fetchedTokens && fetchedTokens.length > 1 ? fetchedTokens[1] : null;
-  }, [fetchedTokens]);
+  const lockToken = useMemo(() => {
+    return selectedTokens.lockToken[selectedBlockchain.id];
+  }, [selectedTokens.lockToken[selectedBlockchain.id]]);
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
@@ -94,10 +77,6 @@ export default function LockPanel({
     }));
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
-
-  const displayToken = useMemo(() => {
-    return selectedTokens.lockToken[selectedBlockchain.id] || defaultToken;
-  }, [selectedTokens.lockToken, defaultToken]);
 
   const {
     data: tokenBalanceData,
@@ -129,15 +108,13 @@ export default function LockPanel({
     }
     const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = amount;
-    if (!useRawValues) {
-      if (!decimals) {
-        toast.error(
-          "Token decimals not found, toggle to use raw values instead."
-        );
-        return;
-      }
-      approvalAmount = amount * 10 ** decimals;
+    if (!decimals) {
+      toast.error(
+        "Token decimals not found, toggle to use raw values instead."
+      );
+      return;
     }
+    approvalAmount = amount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -162,7 +139,7 @@ export default function LockPanel({
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${approvalAmount} 
+        description: `Do you want to approve ${amount} 
         ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
@@ -188,15 +165,13 @@ export default function LockPanel({
     }
     const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let lockAmount = amount;
-    if (!useRawValues) {
-      if (!decimals) {
-        toast.error(
-          "Token decimals not found, toggle to use raw values instead."
-        );
-        return;
-      }
-      lockAmount = amount * 10 ** decimals;
+    if (!decimals) {
+      toast.error(
+        "Token decimals not found, toggle to use raw values instead."
+      );
+      return;
     }
+    lockAmount = amount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -261,7 +236,7 @@ export default function LockPanel({
       },
       {
         title: "Lock Tokens?",
-        description: `Do you want to lock ${lockAmount}
+        description: `Do you want to lock ${amount}
         ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
         successMessage: "Your tokens have been locked successfully.",
         loadingTitle: "Processing Transaction",
@@ -273,85 +248,58 @@ export default function LockPanel({
   return (
     <div className="flex flex-col items-center">
       <div className="w-full md:w-112 rounded-2xl px-4 py-2">
+        <div className="text-xs text-custom-muted-text">You Lock</div>
         <div className="flex justify-between">
-          <div className="text-xs text-custom-muted-text">
-            You Lock:{" "}
-            {selectedTokens.lockToken[selectedBlockchain.id]?.address.slice(
-              0,
-              6
-            ) ?? ""}{" "}
-            Decimals:{" "}
-            {selectedTokens.lockToken[selectedBlockchain.id]?.decimals}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Tooltip>
-              <TooltipTrigger>
-                {" "}
-                <Label htmlFor="use-raw-values" className="text-xs">
-                  Use Raw Values
-                </Label>
-              </TooltipTrigger>
-              <TooltipContent className="w-60">
-                <p>
-                  Value you enter will interpreted as raw values. 10 would
-                  interpreted as 10 tokens but now it would be interpreted as as
-                  a raw value like 0.00...10.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-            <Switch
-              className="shadow-none"
-              id="use-raw-values"
-              checked={useRawValues}
-              onCheckedChange={(checked) => setUseRawValues(checked)}
-            />
-          </div>
-        </div>
-        <div className="flex justify-between">
-          {!fetchedTokens ? (
-            <div className="w-36 h-12 me-6 mb-2 text-3xl font-bold text-left flex items-center">
-              {placeholders.text}
-            </div>
-          ) : (
-            <Button
-              onClick={handletokenSelectorTrigger}
-              variant="ghost"
-              className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
-            >
-              <span>
-                <ImageWithFallback
-                  height={38}
-                  width={38}
-                  src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
-                      : placeholders.tokenImage
-                  }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
-                />
-              </span>
+          <Button
+            onClick={handletokenSelectorTrigger}
+            variant="ghost"
+            className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
+          >
+            {lockToken ? (
+              <>
+                <span>
+                  <ImageWithFallback
+                    height={38}
+                    width={38}
+                    src={
+                      lockToken.logoURI
+                        ? lockToken.logoURI
+                        : placeholders.tokenImage
+                    }
+                    alt={lockToken ? lockToken.name : placeholders.tokenName}
+                    fallbackSrc={placeholders.tokenImage}
+                    // Add key to force re-render when token changes
+                    key={lockToken?.address || "placeholder"}
+                  />
+                </span>
+                <span className="flex flex-col items-start">
+                  <span className="flex flex-row">
+                    <span className="text-xl font-bold text-left text-custom-primary-text">
+                      {lockToken ? lockToken.symbol : placeholders.tokenSymbol}
+                    </span>
+                    <span className="flex items-center">
+                      <ChevronRight className="text-custom-primary-text" />
+                    </span>
+                  </span>
+                  <span className="text-sm text-custom-muted-text">
+                    on {selectedBlockchain.name}
+                  </span>
+                </span>
+              </>
+            ) : (
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-xl font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? displayToken.symbol
-                      : placeholders.tokenSymbol}
+                    Select
                   </span>
                   <span className="flex items-center">
                     <ChevronRight className="text-custom-primary-text" />
                   </span>
                 </span>
-                <span className="text-sm text-custom-muted-text">
-                  on {blockchain.name}
-                </span>
+                <span className="text-sm text-custom-muted-text">A Token</span>
               </span>
-            </Button>
-          )}
+            )}
+          </Button>
           <div>
             <Input
               type="number"
@@ -373,7 +321,7 @@ export default function LockPanel({
         <div className="flex justify-between">
           {
             <div className="text-sm text-custom-muted-text">
-              {displayToken ? displayToken.name : placeholders.tokenName}
+              {lockToken ? lockToken.name : "N/A"}
             </div>
           }
 
@@ -386,9 +334,7 @@ export default function LockPanel({
                   ? "Lockable: " +
                     tokenBalanceData?.balance +
                     " " +
-                    (displayToken
-                      ? displayToken.symbol
-                      : placeholders.tokenSymbol)
+                    (lockToken ? lockToken.symbol : placeholders.tokenSymbol)
                   : "Lockable: Not Found"}
           </div>
         </div>
@@ -420,24 +366,20 @@ export default function LockPanel({
                   height={48}
                   width={48}
                   src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
+                    lockToken?.logoURI
+                      ? lockToken.logoURI
                       : placeholders.tokenImage
                   }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
+                  alt={lockToken ? lockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
+                  key={lockToken?.address || "placeholder"}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? displayToken.symbol
-                      : placeholders.tokenSymbol}
+                    {lockToken ? lockToken.symbol : placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -452,23 +394,21 @@ export default function LockPanel({
                   height={48}
                   width={48}
                   src={
-                    displayToken?.logoURI
-                      ? displayToken.logoURI
+                    lockToken?.logoURI
+                      ? lockToken.logoURI
                       : placeholders.tokenImage
                   }
-                  alt={
-                    displayToken ? displayToken.name : placeholders.tokenName
-                  }
+                  alt={lockToken ? lockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={displayToken?.address || "placeholder"}
+                  key={lockToken?.address || "placeholder"}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {displayToken
-                      ? "li" + displayToken.symbol
+                    {lockToken
+                      ? "li" + lockToken.symbol
                       : "li" + placeholders.tokenSymbol}
                   </span>
                 </span>
@@ -476,17 +416,13 @@ export default function LockPanel({
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your{" "}
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol} and
-            receive li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens that represent your locked position. Use li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your li
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}{" "}
-            tokens to unlock your original{" "}
-            {displayToken ? displayToken.symbol : placeholders.tokenSymbol}. No
-            lock-up period required.
+            Lock your {lockToken ? lockToken.symbol : placeholders.tokenSymbol}{" "}
+            or any token and receive li
+            {lockToken ? lockToken.symbol : placeholders.tokenSymbol}/liquid
+            locked tokens that represent your locked position. Use li
+            {lockToken ? lockToken.symbol : placeholders.tokenSymbol} in other
+            DeFi protocols while earning rewards. Burn your liquid locked tokens
+            to unlock your original tokens. No lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -497,26 +433,16 @@ export default function LockPanel({
         <CardContent className="px-4">
           {
             <div>
-              {`1 ${displayToken ? displayToken.symbol : placeholders.tokenSymbol} = 1 li${
-                displayToken ? displayToken.symbol : placeholders.tokenSymbol
-              }`}
+              {lockToken
+                ? `1 ${lockToken.symbol} = 1 li${lockToken.symbol}`
+                : "1 Token = 1 Liquid Locked Token"}
             </div>
           }
-          <div className="w-full md:w-104 flex justify-between">
+          <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>
               <span className="text-custom-muted-text">Auto </span>
               <span>0.5%</span>
-            </div>
-          </div>
-          <div className="w-full md:w-104 flex justify-between">
-            <div className="text-custom-muted-text">Gas Fee</div>
-            <div>
-              <span>Free</span>
-              <span className="text-custom-muted-text line-through">
-                {" "}
-                $0.75
-              </span>
             </div>
           </div>
         </CardContent>
@@ -536,7 +462,7 @@ export default function LockPanel({
         style="secondary"
         variant="outline"
         size="lg"
-        className="w-74 md:w-112 mt-2"
+        className={`w-74 md:w-112 ${selectedBlockchain.id == "sol" ? "mt-12" : "mt-2"}`}
         onClick={handleLockTokens}
       >
         <Lock /> Lock Tokens
