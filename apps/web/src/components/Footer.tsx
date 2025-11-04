@@ -2,17 +2,18 @@ import React from "react";
 import { Twitter } from "lucide-react";
 import { typography } from "@/styles/typography";
 import { motion } from "motion/react";
+import { Separator } from "./ui/separator";
 
 export const Footer: React.FC = () => {
   return (
-    <>
+    <div className="pt-20">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.15 }}
-        className="bg-transparent mb-6 ms-6 me-6 border-t border-l border-r 
-      border-[1px] border-gray-800 custom-box-shadow rounded-4xl"
+        className="bg-custom-primary-color text-custom-secondary-color 
+        rounded-t-4xl border-4 border-black"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 md:flex md:justify-between lg:grid-cols-4 gap-8">
@@ -26,6 +27,7 @@ export const Footer: React.FC = () => {
                 tokens, mint liquid locked tokens at 1:1, and unlock new DeFi
                 opportunities without selling your holdings.
               </p>
+              <Separator className="text-white" />
               <div className="flex space-x-4">
                 <a
                   href="https://x.com/TwosideOfficial"
@@ -69,6 +71,6 @@ export const Footer: React.FC = () => {
           </div>
         </div>
       </motion.div>
-    </>
+    </div>
   );
 };

@@ -6,7 +6,7 @@ const useCases = [
     icon: Droplets,
     title: "Liquidity Provision",
     description:
-      "Create new trading pairs with your bTOKENs. Earn fees while maintaining exposure to your favorite memecoins.",
+      "Create new trading pairs with your liTOKENs. Earn fees while maintaining exposure to your favorite memecoins.",
     benefit: "Earn passive income without selling",
     gradient: "from-crypto-blue to-crypto-blue-dark",
   },
@@ -14,7 +14,7 @@ const useCases = [
     icon: Gem,
     title: "Collateral for Lending",
     description:
-      "Use bTOKENs as collateral to borrow stablecoins or other assets. Leverage without liquidating your position.",
+      "Use liTOKENs as collateral to borrow stablecoins or other assets. Leverage without liquidating your position.",
     benefit: "Access capital while HODLing",
     gradient: "from-deep-blue to-crypto-blue",
   },
@@ -22,7 +22,7 @@ const useCases = [
     icon: Target,
     title: "Yield Farming",
     description:
-      "Stake bTOKENs in farming pools to earn additional rewards. Multiply your returns while tokens stay locked.",
+      "Stake liTOKENs in farming pools to earn additional rewards. Multiply your returns while tokens stay locked.",
     benefit: "Stack yields on your holdings",
     gradient: "from-red-800 to-deep-blue",
   },
@@ -30,7 +30,7 @@ const useCases = [
     icon: Wallet,
     title: "Portfolio Hedging",
     description:
-      "Lock tokens during volatile periods. Use bTOKENs to establish hedging positions without market exposure.",
+      "Lock tokens during volatile periods. Use liTOKENs to establish hedging positions without market exposure.",
     benefit: "Manage risk strategically",
     gradient: "from-primary to-crypto-blue",
   },
@@ -38,7 +38,7 @@ const useCases = [
 
 export const UseCases = () => {
   return (
-    <section className="py-24 px-4 bg-muted/30 relative overflow-hidden">
+    <section className="py-24 px-4 relative overflow-hidden">
       <div className="container max-w-7xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
@@ -51,7 +51,7 @@ export const UseCases = () => {
             Unlock <span className="gradient-text">Infinite Possibilities</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Don't just hold your memecoins—put them to work. Buffcat opens up a
+            Don't just hold your memecoins—put them to work. Twoside opens up a
             parallel DeFi ecosystem for speculative assets.
           </p>
         </motion.div>
@@ -73,7 +73,8 @@ export const UseCases = () => {
                 whileHover={{ scale: 1.02 }}
               >
                 <div
-                  className={`w-16 h-16 bg-gradient-to-br ${useCase.gradient} flex items-center justify-center mb-6 border-2 border-primary`}
+                  className={`w-16 h-16 bg-gradient-to-br ${useCase.gradient} flex items-center 
+                  justify-center mb-6 border-2 border-primary`}
                 >
                   <useCase.icon className="w-8 h-8 text-background" />
                 </div>
