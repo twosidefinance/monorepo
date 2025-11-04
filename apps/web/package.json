@@ -8,7 +8,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "^1.1.2",
     "@coral-xyz/anchor": "^0.32.1",
     "@metaplex-foundation/umi-bundle-defaults": "^1.4.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -30,7 +29,6 @@
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
     "@tanstack/react-query": "^5.85.6",
-    "@uniswap/token-lists": "1.0.0-beta.34",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "ethers": "^6.15.0",

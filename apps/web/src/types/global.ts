@@ -7,22 +7,11 @@ export type Blockchain = {
   isSupported: boolean;
 };
 
-export type Language =
-  | "english"
-  | "chinese"
-  | "hindi"
-  | "spanish"
-  | "vietnamese"
-  | "portuguese"
-  | "korean"
-  | "japanese"
-  | "russian"
-  | "french";
-
-export type TextContent = {
+export type CoinGeckoTokenType = {
+  chainId: number;
+  address: string;
   name: string;
-};
-
-export type Translations = {
-  [key in Language]: TextContent;
+  symbol: string;
+  decimals: number;
+  logoURI: string;
 };

@@ -1,17 +1,16 @@
-import { SupportedBlockchain } from "@/types/global";
+import { CoinGeckoTokenType, SupportedBlockchain } from "@/types/global";
 import { getCacheKey, getCacheTimestampKey } from "./keys";
-import { TokenInfo } from "@uniswap/token-lists";
 import { ALL_TOKENS_LIST_CACHE_DURATION } from "./durations";
 
 export function cacheAllTokens(
-  parsedTokens: TokenInfo[],
-  blockchain: SupportedBlockchain
+  parsedTokens: CoinGeckoTokenType[],
+  blockchain: SupportedBlockchain,
 ) {
   try {
     const cacheKey = getCacheKey("all_tokens_list", blockchain);
     const cacheTimestampKey = getCacheTimestampKey(
       "all_tokens_list",
-      blockchain
+      blockchain,
     );
     localStorage.setItem(cacheKey, JSON.stringify(parsedTokens));
     localStorage.setItem(cacheTimestampKey, Date.now().toString());
@@ -22,13 +21,13 @@ export function cacheAllTokens(
 
 export function getCachedAllTokens(blockchain: SupportedBlockchain): {
   isCached: boolean;
-  lockTokens: TokenInfo[] | null;
+  lockTokens: CoinGeckoTokenType[] | null;
 } {
   try {
     const cacheKey = getCacheKey("all_tokens_list", blockchain);
     const cacheTimestampKey = getCacheTimestampKey(
       "all_tokens_list",
-      blockchain
+      blockchain,
     );
     const timestamp = localStorage.getItem(cacheTimestampKey);
     const now = Date.now();

@@ -13,10 +13,9 @@ import { UseCases } from "@/components/UseCases";
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Lock");
 
-  const blockchainStateValue = useAtomValue(selectedBlockchainAtom);
-  const { isFetching: isAllTokensListLoading } = useAllTokensList(
-    blockchainStateValue.id
-  );
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const { isFetching: isAllTokensListLoading } =
+    useAllTokensList(selectedBlockchain);
 
   if (isAllTokensListLoading) return <DashboardSkeleton />;
 
@@ -24,7 +23,7 @@ export default function Dashboard() {
     <div className="min-h-screen mx-auto">
       <motion.h1
         id="title"
-        className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 
+        className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6
               leading-tight text-center mx-auto mt-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -35,7 +34,7 @@ export default function Dashboard() {
         <span className="crypto-blue-gradient">Unlock Liquidity</span>
       </motion.h1>
       <section
-        className="mx-auto mt-6 mb-12 w-full md:w-120 min-h-119 rounded-2xl p-4 
+        className="mx-auto mt-6 mb-12 w-full md:w-120 min-h-119 rounded-2xl p-4
     bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow"
       >
         <Tabs
@@ -49,8 +48,8 @@ export default function Dashboard() {
                 value="Lock"
                 className={`bg-transparent border-0 shadow-none data-[state=active]:bg-transparent cursor-pointer
             data-[state=active]:shadow-none text-base font-semibold text-gray-400 data-[state=active]:text-black relative
-            rounded-none data-[state=active]:after:content-[''] data-[state=active]:after:absolute data-[state=active]:after:bottom-[-4px] 
-            data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-black 
+            rounded-none data-[state=active]:after:content-[''] data-[state=active]:after:absolute data-[state=active]:after:bottom-[-4px]
+            data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-black
             transition-colors hover:text-gray-600`}
               >
                 Lock
@@ -60,8 +59,8 @@ export default function Dashboard() {
                 value="Unlock"
                 className={`bg-transparent border-0 shadow-none data-[state=active]:bg-transparent cursor-pointer
             data-[state=active]:shadow-none text-base font-semibold text-gray-400 data-[state=active]:text-black relative
-            rounded-none data-[state=active]:after:content-[''] data-[state=active]:after:absolute data-[state=active]:after:bottom-[-4px] 
-            data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-black 
+            rounded-none data-[state=active]:after:content-[''] data-[state=active]:after:absolute data-[state=active]:after:bottom-[-4px]
+            data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-black
             transition-colors hover:text-gray-600`}
               >
                 Unlock
@@ -79,7 +78,7 @@ export default function Dashboard() {
         </Tabs>
       </section>
       <motion.p
-        className="text-lg md:text-md text-muted-foreground mb-8 
+        className="text-lg md:text-md text-muted-foreground mb-8
                     lg:mx-0 text-center w-full mx-auto md:px-40 lg:px-80"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

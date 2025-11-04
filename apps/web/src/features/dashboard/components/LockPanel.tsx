@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { placeholders } from "@/constants/placeholders";
-import { TokenInfo } from "@uniswap/token-lists";
 import { useMemo, useState } from "react";
 import {
   tokenSelectorAtom,
@@ -25,7 +24,6 @@ import {
   currentUserAtom,
 } from "@/store/global";
 import { Card, CardContent } from "@/components/ui/card";
-import { Blockchain } from "@/types/global";
 import ThemedButton from "@/components/themed/button";
 import { useTokenBalance } from "../hooks/query/tokens";
 import { toast } from "sonner";
@@ -42,6 +40,7 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import { setup } from "../lib/sol/setup";
 import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import { CoinGeckoTokenType } from "@/types/global";
 
 export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -67,7 +66,7 @@ export default function LockPanel() {
     });
   };
 
-  const handleSelectToken = (token: TokenInfo) => {
+  const handleSelectToken = (token: CoinGeckoTokenType) => {
     setSelectedTokens((prev) => ({
       ...prev,
       lockToken: {
@@ -110,7 +109,7 @@ export default function LockPanel() {
     let approvalAmount = amount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -121,7 +120,7 @@ export default function LockPanel() {
         : envVariables.twosideContract.base;
     if (twosideContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`
+        `${selectedBlockchain.name} Twoside contract address not set.`,
       );
       return;
     }
@@ -139,12 +138,12 @@ export default function LockPanel() {
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${amount} 
+        description: `Do you want to approve ${amount}
         ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -167,7 +166,7 @@ export default function LockPanel() {
     let lockAmount = amount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -180,7 +179,7 @@ export default function LockPanel() {
           : envVariables.twosideContract.sol;
     if (twosideContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`
+        `${selectedBlockchain.name} Twoside contract address not set.`,
       );
       return;
     }
@@ -207,7 +206,7 @@ export default function LockPanel() {
           const founderAta = await setup.getTokenATA(tokenMint, founderWallet);
           const developerAta = await setup.getTokenATA(
             tokenMint,
-            developerWallet
+            developerWallet,
           );
 
           sig = await program.methods
@@ -241,7 +240,7 @@ export default function LockPanel() {
         successMessage: "Your tokens have been locked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -312,8 +311,8 @@ export default function LockPanel() {
               className="h-9 my-2 !text-3xl font-bold flex items-center shadow-none
               border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-transparent
               text-right placeholder:text-custom-primary-text p-0
-              [&::-webkit-outer-spin-button]:appearance-none 
-              [&::-webkit-inner-spin-button]:appearance-none 
+              [&::-webkit-outer-spin-button]:appearance-none
+              [&::-webkit-inner-spin-button]:appearance-none
               [-moz-appearance:textfield]"
             />
           </div>

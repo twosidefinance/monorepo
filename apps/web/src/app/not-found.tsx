@@ -13,6 +13,7 @@ export default function NotFound() {
           <span> Not Found</span>
         </div>
         <ThemedButton
+          style="primary"
           size="lg"
           variant="default"
           onClick={() => router.push("/")}

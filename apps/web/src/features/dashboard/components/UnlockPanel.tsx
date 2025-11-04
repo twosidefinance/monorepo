@@ -22,20 +22,11 @@ import {
   tokenSelectorAtom,
 } from "@/store/global";
 import { placeholders } from "@/constants/placeholders";
-import { TokenInfo } from "@uniswap/token-lists";
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Blockchain } from "@/types/global";
 import ThemedButton from "@/components/themed/button";
 import { useTokenBalance } from "../hooks/query/tokens";
 import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { envVariables } from "@/lib/envVariables";
 import { useWriteContract } from "wagmi";
@@ -49,6 +40,7 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import { setup } from "../lib/sol/setup";
 import * as anchor from "@coral-xyz/anchor";
+import { CoinGeckoTokenType } from "@/types/global";
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -74,7 +66,7 @@ export default function UnlockPanel() {
     });
   };
 
-  const handleSelectToken = (token: TokenInfo) => {
+  const handleSelectToken = (token: CoinGeckoTokenType) => {
     setSelectedTokens((prev) => ({
       ...prev,
       unlockToken: {
@@ -127,7 +119,7 @@ export default function UnlockPanel() {
     let approvalAmount = amount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -138,7 +130,7 @@ export default function UnlockPanel() {
         : envVariables.twosideContract.base;
     if (twosideContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`
+        `${selectedBlockchain.name} Twoside contract address not set.`,
       );
       return;
     }
@@ -161,12 +153,12 @@ export default function UnlockPanel() {
       },
       {
         title: "Approve Tokens?",
-        description: `Do you want to approve ${amount} 
+        description: `Do you want to approve ${amount}
         ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -190,7 +182,7 @@ export default function UnlockPanel() {
     let unlockAmount = amount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -203,7 +195,7 @@ export default function UnlockPanel() {
           : envVariables.twosideContract.sol;
     if (twosideContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`
+        `${selectedBlockchain.name} Twoside contract address not set.`,
       );
       return;
     }
@@ -236,7 +228,7 @@ export default function UnlockPanel() {
           const founderAta = await setup.getTokenATA(tokenMint, founderWallet);
           const developerAta = await setup.getTokenATA(
             tokenMint,
-            developerWallet
+            developerWallet,
           );
 
           sig = await program.methods
@@ -263,12 +255,12 @@ export default function UnlockPanel() {
       },
       {
         title: "Unlock Tokens?",
-        description: `Do you want to unlock ${amount} 
+        description: `Do you want to unlock ${amount}
         ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
         successMessage: "Your tokens have been unlocked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -343,8 +335,8 @@ export default function UnlockPanel() {
               className="h-9 my-2 !text-3xl font-bold flex items-center shadow-none
               border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-transparent
               text-right placeholder:text-custom-primary-text p-0
-              [&::-webkit-outer-spin-button]:appearance-none 
-              [&::-webkit-inner-spin-button]:appearance-none 
+              [&::-webkit-outer-spin-button]:appearance-none
+              [&::-webkit-inner-spin-button]:appearance-none
               [-moz-appearance:textfield]"
             />
           </div>

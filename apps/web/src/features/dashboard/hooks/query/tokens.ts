@@ -1,21 +1,20 @@
-import { Blockchain, SupportedBlockchain } from "@/types/global";
+import { Blockchain, CoinGeckoTokenType } from "@/types/global";
 import { cacheAllTokens, getCachedAllTokens } from "../../lib/cache/tokens";
-import { TokenInfo } from "@uniswap/token-lists";
 import { getTokensList } from "../../services/query/tokens";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { ethers } from "ethers";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as splToken from "@solana/spl-token";
 
-export function useAllTokensList(blockchain: SupportedBlockchain) {
-  return useQuery<TokenInfo[] | undefined>({
+export function useAllTokensList(blockchain: Blockchain) {
+  return useQuery<CoinGeckoTokenType[] | undefined>({
     queryKey: [`allTokensList_for_${blockchain}`, blockchain],
     queryFn: async () => {
-      const cachedData = getCachedAllTokens(blockchain);
+      const cachedData = getCachedAllTokens(blockchain.id);
       if (cachedData.isCached && cachedData.lockTokens)
         return cachedData.lockTokens;
       const tokens = await getTokensList(blockchain);
-      cacheAllTokens(tokens, blockchain);
+      cacheAllTokens(tokens, blockchain.id);
       return tokens;
     },
   });
@@ -35,7 +34,7 @@ interface TokenBalanceResult {
 
 export function useTokenBalance(
   { chain, tokenAddressOrMint, userAddress }: UseTokenBalanceParams,
-  options?: UseQueryOptions<TokenBalanceResult, Error>
+  options?: UseQueryOptions<TokenBalanceResult, Error>,
 ) {
   return useQuery<TokenBalanceResult, Error>({
     queryKey: ["tokenBalance", chain, tokenAddressOrMint, userAddress],
@@ -61,7 +60,7 @@ export function useTokenBalance(
           const contract = new ethers.Contract(
             tokenContractAddress,
             abi,
-            provider
+            provider,
           );
 
           const [rawBalance, decimals] = await Promise.all([
@@ -83,25 +82,10 @@ export function useTokenBalance(
           const mintPublicKey = new PublicKey(tokenAddressOrMint);
           const ownerPublicKey = new PublicKey(userAddress);
 
-          // const associatedTokenAccount = await PublicKey.findProgramAddress(
-          //   [
-          //     ownerPublicKey.toBuffer(),
-          //     new PublicKey(
-          //       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-          //     ).toBuffer(),
-          //     mintPublicKey.toBuffer(),
-          //   ],
-          //   new PublicKey("ATokenGPvoter…")
-          // );
-          // const tokenAccountPubkey = associatedTokenAccount[0];
-
-          // const resp =
-          //   await connection.getTokenAccountBalance(tokenAccountPubkey);
-
           const mint = await splToken.getMint(connection, mintPublicKey);
           const userAtaAddress = splToken.getAssociatedTokenAddressSync(
             mintPublicKey,
-            ownerPublicKey
+            ownerPublicKey,
           );
           const userAta = await splToken.getAccount(connection, userAtaAddress);
 
