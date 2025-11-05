@@ -2,22 +2,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LockPanel from "./LockPanel";
 import UnlockPanel from "./UnlockPanel";
 import { useState } from "react";
-import { useAtomValue } from "jotai";
-import { selectedBlockchainAtom } from "@/store/global";
-import { useAllTokensList } from "../hooks/query/tokens";
-import DashboardSkeleton from "@/features/dashboard/components/skeletons/DashboardSkeleton";
 import { motion } from "motion/react";
 import { HowItWorks } from "@/components/HowItWorks";
 import { UseCases } from "@/components/UseCases";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Lock");
-
-  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  const { isFetching: isAllTokensListLoading } =
-    useAllTokensList(selectedBlockchain);
-
-  if (isAllTokensListLoading) return <DashboardSkeleton />;
 
   return (
     <div className="min-h-screen mx-auto">
@@ -29,9 +19,9 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        Lock Your Memes,
+        Yield Without
         <br />
-        <span className="crypto-blue-gradient">Unlock Liquidity</span>
+        <span className="crypto-blue-gradient">Impermanent Loss</span>
       </motion.h1>
       <section
         className="mx-auto mt-6 mb-12 w-full md:w-120 min-h-119 rounded-2xl p-4
@@ -84,7 +74,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Twoside transforms any memecoin into tradeable derivatives. Lock tokens,
+        Twoside transforms any coin into tradeable derivatives. Lock tokens,
         mint liquid locked tokens at 1:1, and unlock new DeFi opportunities
         without selling your holdings.
       </motion.p>

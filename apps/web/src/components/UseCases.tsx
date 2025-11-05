@@ -6,7 +6,7 @@ const useCases = [
     icon: Droplets,
     title: "Liquidity Provision",
     description:
-      "Create new trading pairs with your liTOKENs. Earn fees while maintaining exposure to your favorite memecoins.",
+      "Create new trading pairs with your liTOKENs. Earn fees while maintaining exposure to your favorite coins.",
     benefit: "Earn passive income without selling",
     gradient: "from-crypto-blue to-crypto-blue-dark",
   },
@@ -51,7 +51,7 @@ export const UseCases = () => {
             Unlock <span className="gradient-text">Infinite Possibilities</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Don't just hold your memecoins—put them to work. Twoside opens up a
+            Don't just hold your coins—put them to work. Twoside opens up a
             parallel DeFi ecosystem for speculative assets.
           </p>
         </motion.div>
@@ -67,13 +67,13 @@ export const UseCases = () => {
               transition={{ duration: 0.6, delay: index * 0.15 }}
             >
               <motion.div
-                className="bg-background border-4 border-primary p-8 
-                neo-shadow-card h-full group hover:translate-x-1 
+                className="bg-background border-4 border-primary p-8
+                neo-shadow-card h-full group hover:translate-x-1
                 hover:translate-y-1 transition-all rounded-2xl"
                 whileHover={{ scale: 1.02 }}
               >
                 <div
-                  className={`w-16 h-16 bg-gradient-to-br ${useCase.gradient} flex items-center 
+                  className={`w-16 h-16 bg-gradient-to-br ${useCase.gradient} flex items-center
                   justify-center mb-6 border-2 border-primary`}
                 >
                   <useCase.icon className="w-8 h-8 text-background" />
@@ -103,8 +103,8 @@ export const UseCases = () => {
               transition={{ duration: 0.6, delay: index * 0.15 }}
             >
               <motion.div
-                className="bg-background border-4 border-primary p-8 
-                neo-shadow-card h-full group hover:translate-x-1 
+                className="bg-background border-4 border-primary p-8
+                neo-shadow-card h-full group hover:translate-x-1
                 hover:translate-y-1 transition-all rounded-2xl"
                 whileHover={{ scale: 1.02 }}
               >

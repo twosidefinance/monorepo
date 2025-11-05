@@ -28,10 +28,10 @@
   --color-custom-card-border: #000000;
 
   /* Custom Buffcat colors */
-  --color-crypto-blue: hsl(195, 100%, 50%);
-  --color-crypto-blue-dark: hsl(195, 100%, 45%);
-  --color-deep-blue: hsl(217, 100%, 50%);
-  --color-accent-red: hsl(354, 70%, 50%);
+  --color-crypto-blue: #00bfff;
+  --color-crypto-blue-dark: #00ace6;
+  --color-deep-blue: #0062ff;
+  --color-accent-red: #d92638;
 
   /* Gradient tokens */
   --gradient-hero: linear-gradient(

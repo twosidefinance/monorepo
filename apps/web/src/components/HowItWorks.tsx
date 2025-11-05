@@ -8,7 +8,8 @@ const steps = [
     title: "Lock Your Tokens",
     description:
       "Lock any token into Twoside's smart contracts. Your tokens are secured in a transparent, auditable vault.",
-    color: "crypto-blue",
+    color: "blue-500",
+    textColor: "text-blue-500",
   },
   {
     icon: Coins,
@@ -16,7 +17,8 @@ const steps = [
     title: "Mint Derivatives",
     description:
       "Receive liTOKENs at a 1:1 ratio. These derivatives represent your locked tokens and can be freely traded.",
-    color: "deep-blue",
+    color: "yellow-500",
+    textColor: "text-yellow-500",
   },
   {
     icon: TrendingUp,
@@ -24,7 +26,8 @@ const steps = [
     title: "Use or Redeem",
     description:
       "Trade liTOKENs in liquidity pools, farm rewards, or redeem them for your original tokens anytime at 1:1.",
-    color: "accent-red",
+    color: "red-500",
+    textColor: "text-red-500",
   },
 ];
 
@@ -47,7 +50,7 @@ export const HowItWorks = () => {
             How Twoside <span className="gradient-text">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Three simple steps to unlock liquidity from your memecoins
+            Three simple steps to unlock liquidity from your coins
           </p>
         </motion.div>
 
@@ -75,13 +78,13 @@ export const HowItWorks = () => {
               )}
 
               <motion.div
-                className="bg-background rounded-2xl border-4 border-primary p-8 neo-shadow relative h-full 
+                className="bg-background rounded-2xl border-4 border-primary p-8 neo-shadow relative h-full
                 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                 whileHover={{ scale: 1.02 }}
               >
                 {/* Step number badge */}
                 <div
-                  className={`absolute -top-4 -right-4 w-12 h-12 bg-${step.color} border-2 border-primary 
+                  className={`absolute -top-4 -right-4 w-12 h-12 bg-${step.color} border-2 border-primary
                   flex items-center justify-center font-bold text-lg neo-shadow-sm rounded-full`}
                 >
                   {step.number}
@@ -90,7 +93,7 @@ export const HowItWorks = () => {
                 <div
                   className={`w-16 h-16 bg-${step.color}/10 border-2 border-primary flex items-center justify-center mb-6`}
                 >
-                  <step.icon className={`w-8 h-8 text-${step.color}`} />
+                  <step.icon className={`w-8 h-8 ${step.textColor}`} />
                 </div>
 
                 <h3 className="text-2xl font-bold mb-4">{step.title}</h3>

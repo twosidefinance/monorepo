@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { selectedBlockchainAtom } from "@/store/global";
 import { useAtomValue } from "jotai";
 import Image from "next/image";
@@ -21,15 +21,18 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   onSelectToken,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredTokens, setFilteredTokens] = useState<
-    CoinGeckoTokenType[] | null
-  >(null);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  const [baseTokensPage, setBaseTokensPage] = useState<number>(1);
   const { isFetching, data: tokensList } = useAllTokensList(selectedBlockchain);
 
-  useEffect(() => {
+  const limitedList = useMemo(() => {
     if (tokensList) {
+      return tokensList.slice(0, 101);
+    }
+    return [];
+  }, [tokensList]);
+
+  const filteredList = useMemo(() => {
+    if (tokensList && searchTerm.trim() != "") {
       const newFilteredTokens = tokensList.filter(
         (token: CoinGeckoTokenType) => {
           // Filter by search term only
@@ -41,9 +44,17 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
           }
         },
       );
-      setFilteredTokens(newFilteredTokens);
+      return newFilteredTokens;
     }
+    return [];
   }, [tokensList, searchTerm]);
+
+  const displayList = useMemo(() => {
+    if (filteredList && filteredList?.length > 0) {
+      return filteredList;
+    }
+    return limitedList;
+  }, [limitedList, filteredList]);
 
   if (!isOpen) return null;
 
@@ -53,7 +64,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
       onClick={onClose}
     >
       <div
-        className="top-30 relative rounded-xl w-full md:max-w-md h-[90vh] flex flex-col
+        className="top-20 relative rounded-xl w-full md:max-w-md h-[90vh] flex flex-col
         bg-custom-secondary-color border border-custom-primary-color/30"
         onClick={(e) => e.stopPropagation()}
       >
@@ -93,12 +104,12 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                     {selectedBlockchain.name} Tokens Not Available
                   </p>
                 </div>
-              ) : filteredTokens?.length === 0 ? (
+              ) : displayList.length === 0 ? (
                 <div className="text-center py-8">
                   <div>No Token Found</div>
                 </div>
               ) : (
-                filteredTokens?.map((token) => (
+                displayList.map((token) => (
                   <button
                     key={token.address}
                     className="w-full flex items-center px-3 py-3 rounded-lg cursor-pointer
