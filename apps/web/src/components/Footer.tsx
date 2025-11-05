@@ -30,7 +30,7 @@ export const Footer: React.FC = () => {
               <Separator className="text-white mb-6" />
               <div className="flex space-x-4">
                 <a
-                  href="https://x.com/TwosideOfficial"
+                  href="https://x.com/TwosideFinance"
                   target="_blank"
                   className="hover:text-white text-gray-400 transition-colors duration-200"
                 >
