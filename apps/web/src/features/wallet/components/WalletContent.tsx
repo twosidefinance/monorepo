@@ -1,15 +1,8 @@
 "use client";
 import React, { useEffect } from "react";
-import {
-  Connector,
-  CreateConnectorFn,
-  useAccount,
-  useConnect,
-  useDisconnect,
-} from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
-import { injected, metaMask } from "wagmi/connectors";
 import { Blockchain } from "@/types/global";
 import { WalletDisconnectButton } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -17,26 +10,22 @@ import { useAtom, useAtomValue } from "jotai";
 import { currentUserAtom, selectedBlockchainAtom } from "@/store/global";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogOut, Wallet, CircleQuestionMark } from "lucide-react";
+import { LogOut, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 
 const WalletMultiButtonDynamic = dynamic(
   async () =>
     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: true }
+  { ssr: true },
 );
 
 const formatWalletAddress = (address: string | null) => {
@@ -120,7 +109,7 @@ const WalletContent: React.FC = () => {
         <Button
           size="lg"
           onClick={() => handleNoWalletConnectAttempt(selectedBlockchain)}
-          className="bg-black hover:bg-black text-primary-foreground 
+          className="bg-black hover:bg-black text-primary-foreground
                 border-primary border-2 transition-all hover:scale-103
                 font-bold text-lg px-8 cursor-pointer"
         >
@@ -147,7 +136,7 @@ const WalletContent: React.FC = () => {
       </div>
       <Button
         size="lg"
-        className="bg-black hover:bg-black text-primary-foreground 
+        className="bg-black hover:bg-black text-primary-foreground
                 border-primary border-2 transition-all hover:scale-103
                 font-bold text-lg px-8 cursor-pointer"
         onClick={() =>
@@ -174,7 +163,7 @@ function EvmWalletConnect() {
       <DialogTrigger asChild>
         <Button
           size="lg"
-          className="bg-black hover:bg-black text-primary-foreground 
+          className="bg-black hover:bg-black text-primary-foreground
                 border-primary border-2 transition-all hover:scale-103
                 font-bold text-lg px-8 cursor-pointer"
         >
@@ -193,7 +182,7 @@ function EvmWalletConnect() {
             {evmConnectors.map((connector) => (
               <Button
                 key={connector.name}
-                className="bg-transparent hover:bg-transparent 
+                className="bg-transparent hover:bg-transparent
                   text-custom-primary-color shadow-none cursor-pointer"
                 onClick={() => {
                   if (window != undefined && window.ethereum == undefined) {

@@ -35,7 +35,7 @@ export function CustomLayout({ children }: { children: ReactNode }) {
   return (
     <DialogProvider>
       <TooltipProvider>
-        <WagmiProvider config={wagmiConfig}>
+        <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
           <QueryClientProvider client={queryClient}>
             <SolanaProvider>
               <Header />
