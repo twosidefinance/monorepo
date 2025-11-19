@@ -64,13 +64,17 @@ contract TwosideUpgradeable is
     }
 
     // External -
-    function lock(address _token, uint256 _amount) external nonReentrant whenNotPaused {
+    function lock(
+        address _token,
+        uint256 _amount
+    ) external nonReentrant whenNotPaused {
         if (_token == address(0)) revert ZeroAddress();
         if (_amount == 0) revert ZeroAmountValue();
 
         uint256 allowance = IToken(_token).allowance(msg.sender, address(this));
         if (allowance < _amount) revert InsufficientAllowance();
-        if (IToken(_token).balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+        if (IToken(_token).balanceOf(msg.sender) < _amount)
+            revert InsufficientBalance();
 
         address derivativeAddress = tokenDerivatives[_token];
         if (derivativeAddress == address(0)) {
@@ -79,18 +83,31 @@ contract TwosideUpgradeable is
             string memory symbol = t.symbol();
             uint8 decimals = t.decimals();
 
-            string memory derivativeName = string(abi.encodePacked("Liquid ", name));
-            string memory derivativeSymbol = string(abi.encodePacked("li", symbol));
+            string memory derivativeName = string(
+                abi.encodePacked("Liquid ", name)
+            );
+            string memory derivativeSymbol = string(
+                abi.encodePacked("li", symbol)
+            );
 
             derivativeAddress = Clones.clone(derivativeImplementation);
-            IToken(derivativeAddress).initialize(address(this), derivativeName, derivativeSymbol, decimals);
-            emit DerivativeContractDeployed(_token, derivativeAddress, block.timestamp);
+            IToken(derivativeAddress).initialize(
+                address(this),
+                derivativeName,
+                derivativeSymbol,
+                decimals
+            );
+            emit DerivativeContractDeployed(
+                _token,
+                derivativeAddress,
+                block.timestamp
+            );
             tokenDerivatives[_token] = derivativeAddress;
             tokenOfDerivative[derivativeAddress] = _token;
         }
 
         IToken(_token).safeTransferFrom(msg.sender, address(this), _amount);
-        
+
         uint256 fee = calculateFee(_amount);
         uint256 deductedAmount = _amount - fee;
 
@@ -100,26 +117,37 @@ contract TwosideUpgradeable is
         emit AssetsLocked(msg.sender, _token, _amount, block.timestamp);
     }
 
-    function unlock(address _token, uint256 _amount) external nonReentrant whenNotPaused {
+    function unlock(
+        address _token,
+        uint256 _amount
+    ) external nonReentrant whenNotPaused {
         if (_token == address(0)) revert ZeroAddress();
         if (_amount == 0) revert ZeroAmountValue();
 
         address derivativeAddress = tokenDerivatives[_token];
         if (derivativeAddress == address(0)) revert NoDerivativeDeployed();
 
-        uint256 allowance = IToken(derivativeAddress).allowance(msg.sender, address(this));
+        uint256 allowance = IToken(derivativeAddress).allowance(
+            msg.sender,
+            address(this)
+        );
         if (allowance < _amount) revert InsufficientAllowance();
-        if (IToken(derivativeAddress).balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+        if (IToken(derivativeAddress).balanceOf(msg.sender) < _amount)
+            revert InsufficientBalance();
 
-        IToken(derivativeAddress).safeTransferFrom(msg.sender, address(this), _amount);
-        
+        IToken(derivativeAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
+
         uint256 fee = calculateFee(_amount);
         uint256 deductedAmount = _amount - fee;
 
         distributeFee(_token, fee);
 
         IToken(derivativeAddress).burn(_amount);
-        bool success  = IToken(_token).transfer(msg.sender, deductedAmount);
+        bool success = IToken(_token).transfer(msg.sender, deductedAmount);
         if (!success) revert TokenTransferFailed();
         emit AssetsUnlocked(msg.sender, _token, _amount, block.timestamp);
     }
@@ -131,18 +159,25 @@ contract TwosideUpgradeable is
         // Additional validation logic could go here if needed
     }
 
-    function distributeFee(
-        address _token,
-        uint256 _fee
-    ) internal {
+    function distributeFee(address _token, uint256 _fee) internal {
         uint256 developerFeeShare = (_fee * developerShare) / 100;
         uint256 founderFeeShare = (_fee * founderShare) / 100;
 
         IToken(_token).safeTransfer(developer, developerFeeShare);
         IToken(_token).safeTransfer(founder, founderFeeShare);
 
-        emit DeveloperFeesDistributed(developer, _token, developerFeeShare, block.timestamp);
-        emit FounderFeesDistributed(founder, _token, founderFeeShare, block.timestamp);
+        emit DeveloperFeesDistributed(
+            developer,
+            _token,
+            developerFeeShare,
+            block.timestamp
+        );
+        emit FounderFeesDistributed(
+            founder,
+            _token,
+            founderFeeShare,
+            block.timestamp
+        );
     }
 
     function calculateFee(uint256 _amount) internal view returns (uint256) {

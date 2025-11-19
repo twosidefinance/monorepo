@@ -1,25 +1,20 @@
 use anchor_lang::prelude::*;
 
 use anchor_spl::{
+    associated_token::AssociatedToken,
     token::{
-        self, 
-        Mint, 
-        Token, 
-        TokenAccount, 
-        MintTo, 
-        mint_to, 
-        Burn, 
-        TransferChecked, 
-        transfer_checked
+        self, mint_to, transfer_checked, Burn, Mint, MintTo, Token, TokenAccount, TransferChecked,
     },
-    associated_token::AssociatedToken
 };
 
 use mpl_token_metadata::{
-    ID as metaplex_id,
     accounts::Metadata,
-    instructions::{CreateMetadataAccountV3Cpi, CreateMetadataAccountV3CpiAccounts, CreateMetadataAccountV3InstructionArgs},
-    types::{DataV2}
+    instructions::{
+        CreateMetadataAccountV3Cpi, CreateMetadataAccountV3CpiAccounts,
+        CreateMetadataAccountV3InstructionArgs,
+    },
+    types::DataV2,
+    ID as metaplex_id,
 };
 
 declare_id!("8Z48mrWoffcR3FoqAbcgE7fgRXBYV4zqLD5cMCD44d7f");
@@ -31,7 +26,7 @@ pub mod twoside {
     pub fn initialize_program(
         ctx: Context<InitializeProgram>,
         developer_wallet: Pubkey,
-        founder_wallet: Pubkey
+        founder_wallet: Pubkey,
     ) -> Result<()> {
         require!(
             developer_wallet != Pubkey::default(),
@@ -42,7 +37,10 @@ pub mod twoside {
             TwosideErrorCodes::InvalidPubkey
         );
         let global_info = &mut ctx.accounts.global_info;
-        require!(!global_info.is_initialized, TwosideErrorCodes::ProgramInitialized);
+        require!(
+            !global_info.is_initialized,
+            TwosideErrorCodes::ProgramInitialized
+        );
         global_info.is_initialized = true;
         global_info.developer_wallet = developer_wallet;
         global_info.founder_wallet = founder_wallet;
@@ -55,10 +53,7 @@ pub mod twoside {
         Ok(())
     }
 
-    pub fn lock(
-        ctx: Context<Lock>,
-        amount: u64
-    ) -> Result<()> {
+    pub fn lock(ctx: Context<Lock>, amount: u64) -> Result<()> {
         let system_program = &ctx.accounts.system_program;
         let token_program = &ctx.accounts.token_program;
         let mpl_token_metadata_program = &ctx.accounts.mpl_token_metadata_program;
@@ -86,10 +81,7 @@ pub mod twoside {
             TwosideErrorCodes::InvalidMetaplexProgram
         );
 
-        require!(
-            amount != 0, 
-            TwosideErrorCodes::ZeroAmountValue
-        );
+        require!(amount != 0, TwosideErrorCodes::ZeroAmountValue);
 
         let clock = Clock::get()?;
         let current_timestamp = clock.unix_timestamp;
@@ -121,14 +113,15 @@ pub mod twoside {
                 TwosideErrorCodes::InvalidTokenMetadataAddress
             );
 
-            let (derivative_metadata_address, _derivative_metadata_bump) = Pubkey::find_program_address(
-                &[
-                    METADATA_STATIC_SEED,
-                    metaplex_id.as_ref(),
-                    derivative_mint.key().as_ref(),
-                ],
-                &metaplex_id,
-            );
+            let (derivative_metadata_address, _derivative_metadata_bump) =
+                Pubkey::find_program_address(
+                    &[
+                        METADATA_STATIC_SEED,
+                        metaplex_id.as_ref(),
+                        derivative_mint.key().as_ref(),
+                    ],
+                    &metaplex_id,
+                );
 
             require_eq!(
                 derivative_metadata_acc.key(),
@@ -136,20 +129,27 @@ pub mod twoside {
                 TwosideErrorCodes::InvalidDerivativeMetadataAddress
             );
 
-            let token_metadata: Metadata = Metadata::safe_deserialize(&token_metadata_acc.data.borrow())
-            .map_err(|_| TwosideErrorCodes::UninitializedMetadata)?;
+            let token_metadata: Metadata =
+                Metadata::safe_deserialize(&token_metadata_acc.data.borrow())
+                    .map_err(|_| TwosideErrorCodes::UninitializedMetadata)?;
 
-            require_keys_eq!(token_metadata.mint, token_mint.key(), TwosideErrorCodes::MetadataMintMismatch);
+            require_keys_eq!(
+                token_metadata.mint,
+                token_mint.key(),
+                TwosideErrorCodes::MetadataMintMismatch
+            );
 
-            let mut derivative_name = format!("Liquid {}", token_metadata.name.trim_end()); 
+            let mut derivative_name = format!("Liquid {}", token_metadata.name.trim_end());
             let mut derivative_symbol = format!("li{}", token_metadata.symbol.trim_end());
 
             if derivative_name.as_bytes().len() > 32 {
-                derivative_name = String::from_utf8_lossy(&derivative_name.as_bytes()[..32]).to_string();
+                derivative_name =
+                    String::from_utf8_lossy(&derivative_name.as_bytes()[..32]).to_string();
             }
 
             if derivative_symbol.as_bytes().len() > 10 {
-                derivative_symbol = String::from_utf8_lossy(&derivative_symbol.as_bytes()[..10]).to_string();
+                derivative_symbol =
+                    String::from_utf8_lossy(&derivative_symbol.as_bytes()[..10]).to_string();
             }
 
             let mint_key = token_mint.key();
@@ -159,7 +159,8 @@ pub mod twoside {
                 mint_key.as_ref(),
                 &[derivative_mint_bump],
             ];
-            let full_signer_seeds: &[&[&[u8]]] = &[derivative_authority_seeds, derivative_mint_acc_seeds];
+            let full_signer_seeds: &[&[&[u8]]] =
+                &[derivative_authority_seeds, derivative_mint_acc_seeds];
 
             let rent_info = ctx.accounts.rent.to_account_info();
             let cpi_accounts = CreateMetadataAccountV3CpiAccounts {
@@ -190,10 +191,11 @@ pub mod twoside {
                 &mpl_token_metadata_program.to_account_info(),
                 cpi_accounts,
                 cpi_args,
-            ).invoke_signed(full_signer_seeds)?;
+            )
+            .invoke_signed(full_signer_seeds)?;
 
             token_info.derivative_mint = derivative_mint.key();
-            
+
             emit!(DerivativeTokenMinted {
                 token: token_mint.key(),
                 derivative: derivative_mint.key(),
@@ -202,7 +204,7 @@ pub mod twoside {
         }
 
         require!(
-            derivative_mint.key() == token_info.derivative_mint, 
+            derivative_mint.key() == token_info.derivative_mint,
             TwosideErrorCodes::InvalidDerivativeAddress
         );
 
@@ -217,41 +219,39 @@ pub mod twoside {
         transfer_checked(cpi_context, amount, token_mint.decimals)?;
 
         let fee = calculate_fee(
-            amount, 
-            global_info.fee_percentage as u64, 
+            amount,
+            global_info.fee_percentage as u64,
             global_info.fee_percentage_divider as u64,
             global_info.min_fee_for_distribution as u64,
-            global_info.min_fee as u64
+            global_info.min_fee as u64,
         )?;
         let deducted_amount = amount - fee;
-        
+
         distribute_fee(
-            token_mint, 
-            fee, 
-            current_timestamp, 
-            global_info, 
-            developer_ata, 
-            founder_ata, 
+            token_mint,
+            fee,
+            current_timestamp,
+            global_info,
+            developer_ata,
+            founder_ata,
             vault_authority,
             ctx.bumps.vault_authority,
-            vault_ata, 
-            token_program
+            vault_ata,
+            token_program,
         )?;
 
         let cpi_accounts = MintTo {
             mint: derivative_mint.to_account_info(),
             to: signer_derivative_ata.to_account_info(),
-            authority: derivative_authority.to_account_info()
+            authority: derivative_authority.to_account_info(),
         };
         let cpi_program = token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(
-            cpi_program, 
-            cpi_accounts)
-            .with_signer(derivative_authority_slice);
+        let cpi_ctx =
+            CpiContext::new(cpi_program, cpi_accounts).with_signer(derivative_authority_slice);
 
         mint_to(cpi_ctx, deducted_amount)?;
 
-        emit!(AssetsLocked { 
+        emit!(AssetsLocked {
             account: signer.key(),
             token: token_mint.key(),
             amount: amount,
@@ -261,10 +261,7 @@ pub mod twoside {
         Ok(())
     }
 
-    pub fn unlock(
-        ctx: Context<Unlock>,
-        amount: u64
-    ) -> Result<()> {
+    pub fn unlock(ctx: Context<Unlock>, amount: u64) -> Result<()> {
         let token_program = &ctx.accounts.token_program;
 
         let token_mint = &ctx.accounts.token_mint;
@@ -281,10 +278,7 @@ pub mod twoside {
         let signer_token_ata = &ctx.accounts.signer_token_ata;
         let signer_derivative_ata = &ctx.accounts.signer_derivative_ata;
 
-        require!(
-            amount != 0, 
-            TwosideErrorCodes::ZeroAmountValue
-        );
+        require!(amount != 0, TwosideErrorCodes::ZeroAmountValue);
         require!(
             token_info.derivative_mint != Pubkey::default(),
             TwosideErrorCodes::NoDerivativeDeployed
@@ -292,10 +286,10 @@ pub mod twoside {
 
         let fee = calculate_fee(
             amount,
-            global_info.fee_percentage as u64, 
+            global_info.fee_percentage as u64,
             global_info.fee_percentage_divider as u64,
             global_info.min_fee_for_distribution as u64,
-            global_info.min_fee as u64
+            global_info.min_fee as u64,
         )?;
         let deducted_amount = amount - fee;
 
@@ -303,16 +297,16 @@ pub mod twoside {
         let current_timestamp = clock.unix_timestamp;
 
         distribute_fee(
-            token_mint, 
-            fee, 
-            current_timestamp, 
-            global_info, 
-            developer_ata, 
-            founder_ata, 
-            vault_authority, 
+            token_mint,
+            fee,
+            current_timestamp,
+            global_info,
+            developer_ata,
+            founder_ata,
+            vault_authority,
             ctx.bumps.vault_authority,
-            vault_ata, 
-            token_program
+            vault_ata,
+            token_program,
         )?;
 
         let cpi_accounts = Burn {
@@ -331,7 +325,7 @@ pub mod twoside {
             &[ctx.bumps.vault_authority],
         ];
         let vault_authority_slice: &[&[&[u8]]] = &[vault_authority_seeds];
-    
+
         let cpi_accounts = TransferChecked {
             mint: token_mint.to_account_info(),
             from: vault_ata.to_account_info(),
@@ -339,13 +333,11 @@ pub mod twoside {
             authority: vault_authority.to_account_info(),
         };
         let cpi_program = token_program.to_account_info();
-        let cpi_context = CpiContext::new(
-            cpi_program, 
-            cpi_accounts
-        ).with_signer(vault_authority_slice);
+        let cpi_context =
+            CpiContext::new(cpi_program, cpi_accounts).with_signer(vault_authority_slice);
         transfer_checked(cpi_context, deducted_amount, token_mint.decimals)?;
 
-        emit!(AssetsUnlocked { 
+        emit!(AssetsUnlocked {
             account: signer.key(),
             token: token_mint.key(),
             amount: amount,
@@ -361,7 +353,7 @@ pub fn calculate_fee(
     fee_percentage: u64,
     fee_percentage_divider: u64,
     min_fee_for_distribution: u64,
-    min_fee: u64
+    min_fee: u64,
 ) -> Result<u64> {
     let amount128 = amount as u128;
     let fee_percentage128 = fee_percentage as u128;
@@ -374,9 +366,7 @@ pub fn calculate_fee(
     let half = fee_percentage_divider128
         .checked_div(2)
         .ok_or(TwosideErrorCodes::Overflow)?;
-    let summed = numer
-        .checked_add(half)
-        .ok_or(TwosideErrorCodes::Overflow)?;
+    let summed = numer.checked_add(half).ok_or(TwosideErrorCodes::Overflow)?;
     let rounded = summed / fee_percentage_divider128;
 
     // if rounding produced zero use min_fee, otherwise try to convert to u64 (fail if too big)
@@ -387,11 +377,13 @@ pub fn calculate_fee(
     };
 
     // final sanity: ensure fee leaves something to lock
-    require!(fee_u64 < amount, TwosideErrorCodes::AmountInsufficientAfterFee);
+    require!(
+        fee_u64 < amount,
+        TwosideErrorCodes::AmountInsufficientAfterFee
+    );
 
     Ok(fee_u64)
 }
-
 
 pub fn distribute_fee<'info>(
     token_mint: &Account<'info, Mint>,
@@ -403,10 +395,18 @@ pub fn distribute_fee<'info>(
     vault_authority: &UncheckedAccount<'info>,
     vault_authority_bump: u8,
     vault_ata: &Account<'info, TokenAccount>,
-    token_program: &Program<'info, Token>
+    token_program: &Program<'info, Token>,
 ) -> Result<()> {
-    let developer_share = fee / 2;
-    let founder_share = fee / 2;
+    let developer_share = fee
+        .checked_mul(global_info.developer_fee_share as u64)
+        .ok_or(TwosideErrorCodes::Overflow)?
+        .checked_div(100)
+        .ok_or(TwosideErrorCodes::Overflow)?;
+    let founder_share = fee
+        .checked_mul(global_info.founder_fee_share as u64)
+        .ok_or(TwosideErrorCodes::Overflow)?
+        .checked_div(100)
+        .ok_or(TwosideErrorCodes::Overflow)?;
 
     let mint_key = token_mint.key();
     let seeds: &[&[u8]] = &[
@@ -415,7 +415,7 @@ pub fn distribute_fee<'info>(
         &[vault_authority_bump],
     ];
     let signer_slice: &[&[&[u8]]] = &[seeds];
- 
+
     let cpi_accounts = TransferChecked {
         mint: token_mint.to_account_info(),
         from: vault_ata.to_account_info(),
@@ -423,10 +423,7 @@ pub fn distribute_fee<'info>(
         authority: vault_authority.to_account_info(),
     };
     let cpi_program = token_program.to_account_info();
-    let cpi_context = CpiContext::new(
-        cpi_program, 
-        cpi_accounts)
-        .with_signer(signer_slice);
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer_slice);
     transfer_checked(cpi_context, developer_share, token_mint.decimals)?;
 
     let cpi_accounts = TransferChecked {
@@ -436,20 +433,17 @@ pub fn distribute_fee<'info>(
         authority: vault_authority.to_account_info(),
     };
     let cpi_program = token_program.to_account_info();
-    let cpi_context = CpiContext::new(
-        cpi_program, 
-        cpi_accounts)
-        .with_signer(signer_slice);
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer_slice);
     transfer_checked(cpi_context, founder_share, token_mint.decimals)?;
 
     // add ata field
-    emit!(DeveloperFeeShareDistributed { 
+    emit!(DeveloperFeeShareDistributed {
         developer_wallet: global_info.developer_wallet,
         token: token_mint.key(),
         amount: developer_share,
         timestamp: timestamp
     });
-    emit!(FounderFeeShareDistributed { 
+    emit!(FounderFeeShareDistributed {
         founder_wallet: global_info.founder_wallet,
         token: token_mint.key(),
         amount: founder_share,
@@ -464,8 +458,8 @@ pub struct InitializeProgram<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(
-        init, 
-        seeds = [GLOBAL_INFO_STATIC_SEED], 
+        init,
+        seeds = [GLOBAL_INFO_STATIC_SEED],
         bump,
         payer = signer,
         space = 8 + GlobalInfo::LEN,
@@ -550,9 +544,9 @@ pub struct Lock<'info> {
     #[account(
         init_if_needed,
         seeds = [
-            TOKEN_INFO_STATIC_SEED, 
+            TOKEN_INFO_STATIC_SEED,
             token_mint.key().as_ref()
-        ], 
+        ],
         bump,
         payer = signer,
         space = 8 + TokenInfo::LEN,
@@ -561,9 +555,9 @@ pub struct Lock<'info> {
 
     #[account(
         seeds = [
-            VAULT_AUTHORITY_STATIC_SEED, 
+            VAULT_AUTHORITY_STATIC_SEED,
             token_mint.key().as_ref()
-        ], 
+        ],
         bump,
     )]
     /// CHECK: Token Vault's Authority.
@@ -578,9 +572,9 @@ pub struct Lock<'info> {
 
     #[account(
         mut,
-        seeds = [GLOBAL_INFO_STATIC_SEED], 
+        seeds = [GLOBAL_INFO_STATIC_SEED],
         bump,
-        constraint = global_info.is_initialized 
+        constraint = global_info.is_initialized
         @ ProgramError::UninitializedAccount
     )]
     pub global_info: Box<Account<'info, GlobalInfo>>,
@@ -646,11 +640,11 @@ pub struct Unlock<'info> {
     pub signer_derivative_ata: Account<'info, TokenAccount>,
 
     #[account(
-        mut, 
+        mut,
         seeds = [
-            TOKEN_INFO_STATIC_SEED, 
+            TOKEN_INFO_STATIC_SEED,
             token_mint.key().as_ref()
-        ], 
+        ],
         bump,
         constraint = token_info.original_mint == token_mint.key() &&
         token_info.is_initialized
@@ -659,9 +653,9 @@ pub struct Unlock<'info> {
 
     #[account(
         seeds = [
-            VAULT_AUTHORITY_STATIC_SEED, 
+            VAULT_AUTHORITY_STATIC_SEED,
             token_mint.key().as_ref()
-        ], 
+        ],
         bump,
     )]
     /// CHECK: Token Vault's Authority.
@@ -675,9 +669,9 @@ pub struct Unlock<'info> {
 
     #[account(
         mut,
-        seeds = [GLOBAL_INFO_STATIC_SEED], 
+        seeds = [GLOBAL_INFO_STATIC_SEED],
         bump,
-        constraint = global_info.is_initialized 
+        constraint = global_info.is_initialized
         @ ProgramError::UninitializedAccount
     )]
     pub global_info: Box<Account<'info, GlobalInfo>>,
@@ -705,15 +699,15 @@ pub const DERIVATIVE_MINT_STATIC_SEED: &[u8] = b"derivative_mint";
 
 #[account]
 pub struct GlobalInfo {
-    pub is_initialized: bool, // 1
-    pub developer_wallet: Pubkey, // 32
-    pub founder_wallet: Pubkey, // 32
-    pub fee_percentage: u8, // 8 / 8 = 1
-    pub fee_percentage_divider: u16, // 16 / 8 = 2
+    pub is_initialized: bool,         // 1
+    pub developer_wallet: Pubkey,     // 32
+    pub founder_wallet: Pubkey,       // 32
+    pub fee_percentage: u8,           // 8 / 8 = 1
+    pub fee_percentage_divider: u16,  // 16 / 8 = 2
     pub min_fee_for_distribution: u8, // 8 / 8 = 1
-    pub min_fee: u8, // 8 / 8 = 1
-    pub developer_fee_share: u8, // 8 / 8 = 1
-    pub founder_fee_share: u8, // 8 / 8 = 1
+    pub min_fee: u8,                  // 8 / 8 = 1
+    pub developer_fee_share: u8,      // 8 / 8 = 1
+    pub founder_fee_share: u8,        // 8 / 8 = 1
 }
 
 impl GlobalInfo {
@@ -722,8 +716,8 @@ impl GlobalInfo {
 
 #[account]
 pub struct TokenInfo {
-    pub is_initialized: bool, // 1
-    pub original_mint: Pubkey, // 32
+    pub is_initialized: bool,    // 1
+    pub original_mint: Pubkey,   // 32
     pub derivative_mint: Pubkey, // 32
 }
 
@@ -731,7 +725,7 @@ impl TokenInfo {
     pub const LEN: usize = 1 + 32 + 32;
 }
 
-// Error Codes 
+// Error Codes
 #[error_code]
 pub enum TwosideErrorCodes {
     #[msg("Program already initialized.")]
