@@ -13,7 +13,7 @@ export const useTransactionDialog = () => {
       successMessage: string;
       loadingTitle: string;
       loadingDescription: string;
-    }
+    },
   ): Promise<T> => {
     return new Promise((resolve, reject) => {
       showConsentDialog({

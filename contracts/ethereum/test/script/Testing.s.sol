@@ -45,8 +45,12 @@ contract DeployTwosideUpgradeableOnTestnet is Script {
 
         // Deploy & mint 5 tokens
         for (uint8 i = 1; i <= 5; i++) {
-            string memory name = string(abi.encodePacked("Token", vm.toString(i)));
-            string memory symbol = string(abi.encodePacked("T", vm.toString(i)));
+            string memory name = string(
+                abi.encodePacked("Token", vm.toString(i))
+            );
+            string memory symbol = string(
+                abi.encodePacked("T", vm.toString(i))
+            );
             uint8 decimals = 18;
 
             address token = Clones.clone(tokenImplementation);
@@ -60,7 +64,6 @@ contract DeployTwosideUpgradeableOnTestnet is Script {
             console.log("Amount:", initialBalance);
             console.log("");
             console.log("");
-
 
             if (i == 1) {
                 uint256 lockAmount = 10 * 10 ** 18;

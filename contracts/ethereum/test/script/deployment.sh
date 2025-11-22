@@ -24,4 +24,3 @@ forge script Testing.s.sol:DeployTwosideUpgradeableOnTestnet --via-ir \
     --rpc-url $RPC_URL \
     --broadcast \
     --private-key $USER1_PRIVATE_KEY
-

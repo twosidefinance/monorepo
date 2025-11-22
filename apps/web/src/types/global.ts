@@ -1,4 +1,4 @@
-export type SupportedBlockchain = "eth" | "base" | "sol";
+export type SupportedBlockchain = "eth" | "base";
 
 export type Blockchain = {
   id: SupportedBlockchain;

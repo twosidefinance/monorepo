@@ -1,8 +1,7 @@
 import React from "react";
 import { typography } from "@/styles/typography";
 import Link from "next/link";
-import { ChevronRight, Menu } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import {
   Select,
@@ -24,7 +23,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { UserWallet } from "@/features/wallet/components/UserWallet";
-import { Button } from "./ui/button";
 
 const BlockchainSelector = () => {
   const setBlockchain = useSetAtom(selectedBlockchainAtom);

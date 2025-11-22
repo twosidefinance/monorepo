@@ -1,8 +1,8 @@
 export const placeholders = {
   text: "N/A",
   tokenId: 0,
-  tokenName: "Shiba Inu",
-  tokenSymbol: "SHIB",
+  tokenName: "N/A",
+  tokenSymbol: "N/A",
   tokenDecimals: 0,
   tokenImage: "/shib-logo.png",
   tokenAddress: "0x0000000000000000000000000000000000000000",

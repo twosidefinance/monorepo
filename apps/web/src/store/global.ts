@@ -21,12 +21,10 @@ export const selectedTokensAtom = atom<SelectedTokensAtom>({
   lockToken: {
     eth: null,
     base: null,
-    sol: null,
   },
   unlockToken: {
     eth: null,
     base: null,
-    sol: null,
   },
 });
 

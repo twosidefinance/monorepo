@@ -25,7 +25,6 @@ import { placeholders } from "@/constants/placeholders";
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import ThemedButton from "@/components/themed/button";
-import { useTokenBalance } from "../hooks/query/tokens";
 import { useTransactionDialog } from "../hooks/transactionDialogHook";
 import { toast } from "sonner";
 import { envVariables } from "@/lib/envVariables";
@@ -33,13 +32,6 @@ import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/evm/erc20.json";
 import twosideAbi from "../lib/evm/twoside.json";
 import { useTokenDerivative } from "../hooks/query/contract";
-import {
-  useAnchorProgram,
-  useAnchorProgramWallets,
-} from "../hooks/anchorProgram";
-import { PublicKey } from "@solana/web3.js";
-import { setup } from "../lib/sol/setup";
-import * as anchor from "@coral-xyz/anchor";
 import { CoinGeckoTokenType } from "@/types/global";
 
 export default function UnlockPanel() {
@@ -49,8 +41,7 @@ export default function UnlockPanel() {
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(1);
   const { writeContractAsync } = useWriteContract();
-  const program = useAnchorProgram();
-  const wallets = useAnchorProgramWallets();
+
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
   }, [selectedTokens.unlockToken[selectedBlockchain.id]]);
@@ -77,24 +68,10 @@ export default function UnlockPanel() {
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
-  const {
-    data: tokenDerivativeData,
-    isLoading: isTokenDerivativeLoading,
-    error: tokenDerivativeError,
-  } = useTokenDerivative({
+  const { data: tokenDerivativeData } = useTokenDerivative({
     chain: selectedBlockchain,
     tokenAddressOrMint:
       selectedTokens.unlockToken[selectedBlockchain.id]?.address ?? "",
-  });
-
-  const {
-    data: tokenBalanceData,
-    isLoading: isTokenBalanceLoading,
-    error: tokenBalanceError,
-  } = useTokenBalance({
-    chain: selectedBlockchain,
-    tokenAddressOrMint: tokenDerivativeData ?? "",
-    userAddress: currentUser.address,
   });
 
   const { withConfirmation } = useTransactionDialog();
@@ -123,7 +100,7 @@ export default function UnlockPanel() {
       );
       return;
     }
-    approvalAmount = amount * decimals;
+    approvalAmount = amount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -190,9 +167,7 @@ export default function UnlockPanel() {
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
-        : selectedBlockchain.id == "base"
-          ? envVariables.twosideContract.base
-          : envVariables.twosideContract.sol;
+        : envVariables.twosideContract.base;
     if (twosideContract == "") {
       toast.error(
         `${selectedBlockchain.name} Twoside contract address not set.`,
@@ -206,52 +181,15 @@ export default function UnlockPanel() {
     }
     await withConfirmation(
       async () => {
-        let sig;
-        if (selectedBlockchain.id == "sol") {
-          if (!program) {
-            toast.error("Solana program not set, try again or reload.");
-            return;
-          }
-
-          const tokenMint = new PublicKey(tokenAddress);
-          const tokenMetadata = setup.getTokenMetadataPDA(tokenMint);
-          const signer = new PublicKey(currentUser.address);
-          const signerTokenAta = await setup.getTokenATA(tokenMint, signer);
-          const founderWallet = wallets?.founder;
-          const developerWallet = wallets?.developer;
-
-          if (!developerWallet || !founderWallet) {
-            toast.error("Error getting crucial accounts, reload & try again.");
-            return;
-          }
-
-          const founderAta = await setup.getTokenATA(tokenMint, founderWallet);
-          const developerAta = await setup.getTokenATA(
-            tokenMint,
-            developerWallet,
-          );
-
-          sig = await program.methods
-            .unlock(new anchor.BN(unlockAmount))
-            .accounts({
-              tokenMint: tokenMint,
-              signer: signer,
-              signerTokenAta: signerTokenAta,
-              developerAta: developerAta,
-              founderAta: founderAta,
-            })
-            .rpc();
-        } else {
-          const sig = await writeContractAsync({
-            address: twosideContract as `0x${string}`,
-            abi: twosideAbi.abi,
-            functionName: "unlock",
-            args: [derivativeAddress, unlockAmount],
-          });
-          toast.success("Signature", {
-            description: `${sig}`,
-          });
-        }
+        const sig = await writeContractAsync({
+          address: twosideContract as `0x${string}`,
+          abi: twosideAbi.abi,
+          functionName: "unlock",
+          args: [tokenAddress, unlockAmount],
+        });
+        toast.success("Signature", {
+          description: `${sig}`,
+        });
       },
       {
         title: "Unlock Tokens?",
@@ -341,27 +279,8 @@ export default function UnlockPanel() {
             />
           </div>
         </div>
-        <div className="flex justify-between">
-          {
-            <div className="text-sm text-custom-muted-text">
-              {unlockToken ? unlockToken.name : "N/A"}
-            </div>
-          }
-
-          <div className="text-sm text-custom-muted-text">
-            {isTokenDerivativeLoading || isTokenBalanceLoading
-              ? "Loading..."
-              : tokenBalanceError
-                ? "Not Found"
-                : tokenBalanceData?.balance
-                  ? "Unlockable: " +
-                    tokenBalanceData?.balance +
-                    " " +
-                    (unlockToken
-                      ? unlockToken.symbol
-                      : placeholders.tokenSymbol)
-                  : "Unlockable: Not Found"}
-          </div>
+        <div className="text-sm text-custom-muted-text">
+          {unlockToken ? unlockToken.name : "N/A"}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -475,22 +394,20 @@ export default function UnlockPanel() {
           </div>
         </CardContent>
       </Card>
-      {selectedBlockchain.id == "sol" ? null : (
-        <ThemedButton
-          style="primary"
-          variant="outline"
-          size="lg"
-          className="w-74 md:w-112 mt-2"
-          onClick={handleTokenApproval}
-        >
-          <CircleCheck /> Approve Tokens
-        </ThemedButton>
-      )}
+      <ThemedButton
+        style="primary"
+        variant="outline"
+        size="lg"
+        className="w-74 md:w-112 mt-2"
+        onClick={handleTokenApproval}
+      >
+        <CircleCheck /> Approve Tokens
+      </ThemedButton>
       <ThemedButton
         style="secondary"
         variant="outline"
         size="lg"
-        className={`w-74 md:w-112 ${selectedBlockchain.id == "sol" ? "mt-12" : "mt-2"}`}
+        className="w-74 md:w-112 mt-2"
         onClick={handleUnlockTokens}
       >
         <Unlock /> Unlock Tokens

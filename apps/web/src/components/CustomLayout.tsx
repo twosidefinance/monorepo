@@ -7,9 +7,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { SolanaProvider } from "@/features/wallet/config/solanaConfig";
 import { wagmiConfig } from "@/features/wallet/config/wagmiConfig";
-import { toast } from "sonner";
 import { Toaster } from "./ui/sonner";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -37,12 +35,10 @@ export function CustomLayout({ children }: { children: ReactNode }) {
       <TooltipProvider>
         <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
           <QueryClientProvider client={queryClient}>
-            <SolanaProvider>
-              <Header />
-              {children}
-              <Footer />
-              <Toaster position="bottom-right" richColors />
-            </SolanaProvider>
+            <Header />
+            {children}
+            <Footer />
+            <Toaster position="bottom-right" richColors />
           </QueryClientProvider>
         </WagmiProvider>
       </TooltipProvider>

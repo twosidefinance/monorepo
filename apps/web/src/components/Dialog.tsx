@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useState, createContext, useContext, useRef } from "react";
 import { AlertTriangle, Loader2, X } from "lucide-react";
 import {
   AlertDialog,
@@ -176,7 +169,7 @@ const ConsentDialog = () => {
   return (
     <AlertDialog open={consentState.isOpen} onOpenChange={handleOpenChange}>
       <AlertDialogContent
-        className="bg-custom-secondary-color text-custom-primary-text 
+        className="bg-custom-secondary-color text-custom-primary-text
       neo-shadow-sm border-2 border-custom-primary-color"
       >
         <AlertDialogHeader>

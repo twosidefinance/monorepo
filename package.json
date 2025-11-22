@@ -39,6 +39,7 @@
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "^1.4.1",
-    "@metaplex-foundation/umi-web3js-adapters": "^1.4.1"
+    "@metaplex-foundation/umi-web3js-adapters": "^1.4.1",
+    "ethers": "^6.15.0"
   }
 }

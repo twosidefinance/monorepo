@@ -25,21 +25,12 @@ import {
 } from "@/store/global";
 import { Card, CardContent } from "@/components/ui/card";
 import ThemedButton from "@/components/themed/button";
-import { useTokenBalance } from "../hooks/query/tokens";
 import { toast } from "sonner";
 import { useTransactionDialog } from "../hooks/transactionDialogHook";
 import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/evm/erc20.json";
 import twosideAbi from "../lib/evm/twoside.json";
 import { envVariables } from "@/lib/envVariables";
-import * as anchor from "@coral-xyz/anchor";
-import {
-  useAnchorProgram,
-  useAnchorProgramWallets,
-} from "../hooks/anchorProgram";
-import { PublicKey } from "@solana/web3.js";
-import { setup } from "../lib/sol/setup";
-import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { CoinGeckoTokenType } from "@/types/global";
 
 export default function LockPanel() {
@@ -49,8 +40,7 @@ export default function LockPanel() {
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<number>(1);
   const { writeContractAsync } = useWriteContract();
-  const program = useAnchorProgram();
-  const wallets = useAnchorProgramWallets();
+
   const lockToken = useMemo(() => {
     return selectedTokens.lockToken[selectedBlockchain.id];
   }, [selectedTokens.lockToken[selectedBlockchain.id]]);
@@ -76,17 +66,6 @@ export default function LockPanel() {
     }));
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
-
-  const {
-    data: tokenBalanceData,
-    isLoading: isTokenBalanceLoading,
-    error: tokenBalanceError,
-  } = useTokenBalance({
-    chain: selectedBlockchain,
-    tokenAddressOrMint:
-      selectedTokens.lockToken[selectedBlockchain.id]?.address ?? "",
-    userAddress: currentUser.address,
-  });
 
   const { withConfirmation } = useTransactionDialog();
 
@@ -174,9 +153,7 @@ export default function LockPanel() {
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
-        : selectedBlockchain.id == "base"
-          ? envVariables.twosideContract.base
-          : envVariables.twosideContract.sol;
+        : envVariables.twosideContract.base;
     if (twosideContract == "") {
       toast.error(
         `${selectedBlockchain.name} Twoside contract address not set.`,
@@ -185,50 +162,12 @@ export default function LockPanel() {
     }
     await withConfirmation(
       async () => {
-        let sig;
-        if (selectedBlockchain.id == "sol") {
-          if (!program) {
-            toast.error("Solana program not set, try again or reload.");
-            return;
-          }
-          const tokenMint = new PublicKey(tokenAddress);
-          const tokenMetadata = setup.getTokenMetadataPDA(tokenMint);
-          const signer = new PublicKey(currentUser.address);
-          const signerTokenAta = await setup.getTokenATA(tokenMint, signer);
-          const founderWallet = wallets?.founder;
-          const developerWallet = wallets?.developer;
-
-          if (!developerWallet || !founderWallet) {
-            toast.error("Error getting crucial accounts, reload & try again.");
-            return;
-          }
-
-          const founderAta = await setup.getTokenATA(tokenMint, founderWallet);
-          const developerAta = await setup.getTokenATA(
-            tokenMint,
-            developerWallet,
-          );
-
-          sig = await program.methods
-            .lock(new anchor.BN(lockAmount))
-            .accounts({
-              tokenMint: tokenMint,
-              tokenMetadata: tokenMetadata.pda,
-              signer: signer,
-              signerTokenAta: signerTokenAta,
-              developerAta: developerAta,
-              founderAta: founderAta,
-              mplTokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
-            })
-            .rpc();
-        } else {
-          sig = await writeContractAsync({
-            address: twosideContract as `0x${string}`,
-            abi: twosideAbi.abi,
-            functionName: "lock",
-            args: [tokenAddress, lockAmount],
-          });
-        }
+        const sig = await writeContractAsync({
+          address: twosideContract as `0x${string}`,
+          abi: twosideAbi.abi,
+          functionName: "lock",
+          args: [tokenAddress, lockAmount],
+        });
         toast.success("Signature", {
           description: `${sig}`,
         });
@@ -317,25 +256,8 @@ export default function LockPanel() {
             />
           </div>
         </div>
-        <div className="flex justify-between">
-          {
-            <div className="text-sm text-custom-muted-text">
-              {lockToken ? lockToken.name : "N/A"}
-            </div>
-          }
-
-          <div className="text-sm text-custom-muted-text">
-            {isTokenBalanceLoading
-              ? "Loading..."
-              : tokenBalanceError
-                ? "Not Found"
-                : tokenBalanceData?.balance
-                  ? "Lockable: " +
-                    tokenBalanceData?.balance +
-                    " " +
-                    (lockToken ? lockToken.symbol : placeholders.tokenSymbol)
-                  : "Lockable: Not Found"}
-          </div>
+        <div className="text-sm text-custom-muted-text">
+          {lockToken ? lockToken.name : "N/A"}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -446,22 +368,20 @@ export default function LockPanel() {
           </div>
         </CardContent>
       </Card>
-      {selectedBlockchain.id == "sol" ? null : (
-        <ThemedButton
-          style="primary"
-          variant="outline"
-          size="lg"
-          className="w-74 md:w-112 mt-2"
-          onClick={handleTokenApproval}
-        >
-          <CircleCheck /> Approve Tokens
-        </ThemedButton>
-      )}
+      <ThemedButton
+        style="primary"
+        variant="outline"
+        size="lg"
+        className="w-74 md:w-112 mt-2"
+        onClick={handleTokenApproval}
+      >
+        <CircleCheck /> Approve Tokens
+      </ThemedButton>
       <ThemedButton
         style="secondary"
         variant="outline"
         size="lg"
-        className={`w-74 md:w-112 ${selectedBlockchain.id == "sol" ? "mt-12" : "mt-2"}`}
+        className="w-74 md:w-112 mt-2"
         onClick={handleLockTokens}
       >
         <Lock /> Lock Tokens
