@@ -4,7 +4,7 @@ export const placeholders = {
   tokenName: "N/A",
   tokenSymbol: "N/A",
   tokenDecimals: 0,
-  tokenImage: "/shib-logo.png",
+  tokenImage: "/token-placeholder.png",
   tokenAddress: "0x0000000000000000000000000000000000000000",
   tokenPrice: 0,
   userAddress: "0x0000000000000000000000000000000000000000",
