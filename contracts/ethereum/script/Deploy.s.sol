@@ -31,15 +31,8 @@ contract DeployTwosideUpgradeableOnMainnet is Script {
             founderPublicKey
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(twosideImpl), data);
-        TwosideUpgradeable twoside = TwosideUpgradeable(address(proxy));
 
         console.log("TwosideUpgradeable Proxy deployed at:", address(proxy));
-        console.log("");
-        console.log("");
-
-        // Get token implementation address
-        address tokenImplementation = twoside.derivativeImplementation();
-        console.log("Token implementation at:", tokenImplementation);
         console.log("");
         console.log("");
 
