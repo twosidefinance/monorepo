@@ -1,8 +1,9 @@
 [package]
-name = "solana"
+name = "twoside"
 version = "0.1.0"
 description = "Created with Anchor"
-edition = "2021"
+edition = "2025"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "lib"]

@@ -7,10 +7,10 @@ import {ERC20BurnableUpgradeable} from "@openzeppelin-contracts-upgradeable/toke
 import {Initializable} from "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract DerivativeToken is 
-    Initializable, 
-    ERC20Upgradeable, 
-    ERC20BurnableUpgradeable, 
+contract DerivativeToken is
+    Initializable,
+    ERC20Upgradeable,
+    ERC20BurnableUpgradeable,
     OwnableUpgradeable
 {
     uint8 private customDecimals;
@@ -21,9 +21,9 @@ contract DerivativeToken is
     }
 
     function initialize(
-        address _initialOwner, 
-        string calldata _name, 
-        string calldata _symbol, 
+        address _initialOwner,
+        string calldata _name,
+        string calldata _symbol,
         uint8 _decimals
     ) public initializer {
         __ERC20_init(_name, _symbol);
