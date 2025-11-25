@@ -386,6 +386,11 @@ export default function LockPanel() {
       >
         <Lock /> Lock Tokens
       </ThemedButton>
+      <div className="p-2 text-sm text-muted-foreground text-center">
+        Disclaimer: You'll have to pay for deploying the derivative of the token
+        you are locking if it hasn't been locked before on twoside even once on
+        the specific chain you are on.
+      </div>
     </div>
   );
 }
