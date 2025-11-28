@@ -38,22 +38,6 @@ export const Footer: React.FC = () => {
                 </a>
               </div>
             </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="mb-4">Resources</h4>
-              <ul className="space-y-3">
-                <li>
-                  <a
-                    href="https://docs.twoside.org/"
-                    target="_blank"
-                    className="cursor-pointer transition-colors duration-200"
-                  >
-                    Documentation
-                  </a>
-                </li>
-              </ul>
-            </div>
           </div>
 
           <div className="pt-8 flex flex-col md:flex-row justify-between items-center">
