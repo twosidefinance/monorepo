@@ -40,7 +40,7 @@ export default function UnlockPanel() {
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
-  const [amount, setAmount] = useState<number>(1);
+  const [amount, setAmount] = useState<string>("1");
   const { writeContractAsync } = useWriteContract();
 
   const unlockToken = useMemo(() => {
@@ -88,20 +88,21 @@ export default function UnlockPanel() {
       toast.error("Select a token and try again.");
       return;
     }
-    if (amount == 0 || amount < 0) {
+    let parsedAmount = parseFloat(amount);
+    if (parsedAmount == 0 || parsedAmount < 0) {
       toast.error("Invalid Amount Input");
       return;
     }
     const decimals =
       selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
-    let approvalAmount = amount;
+    let approvalAmount = parsedAmount;
     if (!decimals) {
       toast.error(
         "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
-    approvalAmount = amount * 10 ** decimals;
+    approvalAmount = parsedAmount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -151,20 +152,21 @@ export default function UnlockPanel() {
       toast.error("Select a token and try again.");
       return;
     }
-    if (amount == 0 || amount < 0) {
+    let parsedAmount = parseFloat(amount);
+    if (parsedAmount == 0 || parsedAmount < 0) {
       toast.error("Invalid Amount Input");
       return;
     }
     const decimals =
       selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
-    let unlockAmount = amount;
+    let unlockAmount = parsedAmount;
     if (!decimals) {
       toast.error(
         "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
-    unlockAmount = amount * 10 ** decimals;
+    unlockAmount = parsedAmount * 10 ** decimals;
     const twosideContract =
       selectedBlockchain.id == "eth"
         ? envVariables.twosideContract.eth
@@ -264,13 +266,15 @@ export default function UnlockPanel() {
           </Button>
           <div>
             <Input
-              type="number"
+              type="text"
+              pattern="^\d*\.?\d*$"
               min={0}
               inputMode="decimal"
               placeholder="1.00"
               value={amount}
-              onChange={(e) => setAmount(parseInt(e.target.value))}
+              onChange={(e) => setAmount(e.target.value)}
               aria-label="amount"
+              step="any"
               className="h-9 my-2 !text-3xl font-bold flex items-center shadow-none
               border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-transparent
               text-right placeholder:text-custom-primary-text p-0

@@ -10,7 +10,10 @@ if [ -f ".env" ]; then
 fi
 
 # Deploy and create projects in one go
-forge script Deploy.s.sol:DeployTwosideUpgradeableOnMainnet --via-ir --verbosity \
+forge script Deploy.s.sol:DeployTwosideUpgradeableOnMainnet --verbosity \
     --rpc-url $RPC_URL \
     --broadcast \
-    --private-key $OWNER_PRIVATE_KEY
+    --private-key $OWNER_PRIVATE_KEY \
+    --verify \
+    --verifier etherscan \
+    --etherscan-api-key $ETHERSCAN_API_KEY
