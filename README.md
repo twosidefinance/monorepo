@@ -331,7 +331,7 @@ const localTokens: CoinGeckoTokenType[] = [
   {
     chainId: 1,
     address: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431",
-    name: "Liquid Token 1",
+    name: "Token 1",
     symbol: "T1",
     decimals: 18,
     logoURI: "/token-placeholder.png",
@@ -339,7 +339,7 @@ const localTokens: CoinGeckoTokenType[] = [
   {
     chainId: 1,
     address: "0xeD1DB453C3156Ff3155a97AD217b3087D5Dc5f6E",
-    name: "Liquid Token 2",
+    name: "Token 2",
     symbol: "T2",
     decimals: 18,
     logoURI: "/token-placeholder.png",
@@ -347,7 +347,7 @@ const localTokens: CoinGeckoTokenType[] = [
   {
     chainId: 1,
     address: "0x82Dc47734901ee7d4f4232f398752cB9Dd5dACcC",
-    name: "Liquid Token 3",
+    name: "Token 3",
     symbol: "T3",
     decimals: 18,
     logoURI: "/token-placeholder.png",
@@ -355,7 +355,7 @@ const localTokens: CoinGeckoTokenType[] = [
   {
     chainId: 1,
     address: "0x05B4CB126885fb10464fdD12666FEb25E2563B76",
-    name: "Liquid Token 4",
+    name: "Token 4",
     symbol: "T4",
     decimals: 18,
     logoURI: "/token-placeholder.png",
@@ -363,7 +363,7 @@ const localTokens: CoinGeckoTokenType[] = [
   {
     chainId: 1,
     address: "0xc6B8FBF96CF7bbE45576417EC2163AcecFA88ECC",
-    name: "Liquid Token 5",
+    name: "Token 5",
     symbol: "T5",
     decimals: 18,
     logoURI: "/token-placeholder.png",
