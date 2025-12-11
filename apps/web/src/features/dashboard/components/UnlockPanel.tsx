@@ -34,6 +34,7 @@ import twosideAbi from "../lib/evm/twoside.json";
 import { useTokenDerivative } from "../hooks/query/contract";
 import { CoinGeckoTokenType } from "@/types/global";
 import TokenInfo from "./TokenInfo";
+import { isValidFloat } from "../lib/utils";
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -86,6 +87,10 @@ export default function UnlockPanel() {
       selectedTokens.unlockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
+      return;
+    }
+    if (!isValidFloat(amount)) {
+      toast.error("Invalid input.");
       return;
     }
     let parsedAmount = parseFloat(amount);
@@ -150,6 +155,10 @@ export default function UnlockPanel() {
       selectedTokens.unlockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
+      return;
+    }
+    if (!isValidFloat(amount)) {
+      toast.error("Invalid input.");
       return;
     }
     let parsedAmount = parseFloat(amount);

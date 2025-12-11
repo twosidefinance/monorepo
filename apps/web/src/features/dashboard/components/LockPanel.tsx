@@ -35,6 +35,7 @@ import { CoinGeckoTokenType } from "@/types/global";
 import TokenInfo from "./TokenInfo";
 import { useDialog } from "@/components/Dialog";
 import { useTokenDerivative } from "../hooks/query/contract";
+import { isValidFloat } from "../lib/utils";
 
 export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -87,6 +88,10 @@ export default function LockPanel() {
       selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
+      return;
+    }
+    if (!isValidFloat(amount)) {
+      toast.error("Invalid input.");
       return;
     }
     let parsedAmount = parseFloat(amount);
@@ -145,6 +150,10 @@ export default function LockPanel() {
       selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
       toast.error("Select a token and try again.");
+      return;
+    }
+    if (!isValidFloat(amount)) {
+      toast.error("Invalid input.");
       return;
     }
     let parsedAmount = parseFloat(amount);

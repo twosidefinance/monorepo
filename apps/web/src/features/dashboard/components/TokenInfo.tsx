@@ -96,6 +96,21 @@ export default function TokenInfo({
     );
   }
 
+  if (!tokenDerivativeData) {
+    return (
+      <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30 text-custom-primary-text">
+        <CollapsibleTrigger className="w-full py-2 px-4 flex justify-between">
+          <div className="flex items-center gap-2">
+            <BadgeDollarSign className="h-4 w-4" />
+            <span>Derivative Token Info: N/A</span>
+          </div>
+        </CollapsibleTrigger>
+
+        {isCollapsibleOpen && <CollapsibleContent>{null}</CollapsibleContent>}
+      </Collapsible>
+    );
+  }
+
   if (tokenDerivativeData == "0x0000000000000000000000000000000000000000") {
     return (
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30 text-custom-primary-text">
